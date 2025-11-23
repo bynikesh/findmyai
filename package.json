@@ -1,0 +1,21 @@
+{
+    "name": "find-my-ai",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "backend",
+        "frontend"
+    ],
+    "scripts": {
+        "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+        "build": "npm run build --workspaces",
+        "lint": "npm run lint --workspaces",
+        "test": "npm run test --workspaces"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "typescript": "^5.3.3",
+        "eslint": "^8.56.0",
+        "prettier": "^3.2.4"
+    }
+}
