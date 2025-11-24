@@ -38,6 +38,7 @@ WORKDIR /app
 
 # Install only production deps for backend
 COPY backend/package*.json ./backend/
+COPY backend/package-lock.json ./backend/
 RUN cd backend && npm ci --omit=dev
 
 # Copy built assets
