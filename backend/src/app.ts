@@ -5,6 +5,8 @@ import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod
 import authPlugin from './plugins/auth';
 import toolRoutes from './routes/tools';
 import authRoutes from './routes/auth';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
 
 export const buildApp = () => {
     const app = Fastify({
@@ -21,6 +23,12 @@ export const buildApp = () => {
     app.register(rateLimit, {
         max: 100,
         timeWindow: '15 minutes',
+    });
+
+    // Serve the built frontend from the root path
+    app.register(fastifyStatic, {
+        root: path.join(__dirname, '../../frontend/dist'),
+        prefix: '/', // optional, default '/' – serve at root
     });
 
     app.register(authPlugin);
