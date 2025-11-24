@@ -5,9 +5,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
     plugins: [react()],
     server: {
+        allowedHosts: ['devserver-main--findmyaixyz.netlify.app'],
         proxy: {
             '/api': {
-                target: 'http://localhost:3000',
+                target: process.env.VITE_API_URL ?? 'http://localhost:3000',
                 changeOrigin: true,
             },
         },
