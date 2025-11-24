@@ -5,28 +5,28 @@ FROM node:20-bullseye AS builder
 
 WORKDIR /app
 
-# Install root dependencies (optional if you have shared packages)
+# Copy root package.json for workspace configuration
 COPY package*.json ./
-RUN npm install
 
-# Backend deps
+# Copy backend package files
 COPY backend/package*.json ./backend/
-RUN cd backend && npm install
 
-# Frontend deps
+# Copy frontend package files
 COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm install
+
+# Install all dependencies (root + workspaces)
+RUN npm install
 
 # Copy source code
 COPY . .
 
 # Build frontend (Vite)
 WORKDIR /app/frontend
-RUN npm run build   # produces ./dist
+RUN npm run build
 
-# Build backend (TS -> JS if applicable)
+# Build backend (TypeScript -> JavaScript)
 WORKDIR /app/backend
-RUN npm run build   # produces ./dist
+RUN npm run build
 
 # -------------------------------
 #  Runtime stage – serve backend + static frontend
@@ -35,18 +35,20 @@ FROM node:20-bullseye AS runtime
 
 WORKDIR /app
 
-# Install only production backend dependencies
+# Copy backend package files
 COPY backend/package*.json ./backend/
+
+# Install only production backend dependencies
 RUN cd backend && npm install --omit=dev
 
-# Copy built assets
+# Copy built assets from builder
 COPY --from=builder /app/frontend/dist ./frontend/dist
 COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/backend/prisma ./backend/prisma
 
-# Expose port (Railway provides $PORT env)
+# Set environment
 ENV NODE_ENV=production
 EXPOSE 3000
 
-# Start backend (Fastify / Express)
+# Start backend server
 CMD ["node", "backend/dist/index.js"]
