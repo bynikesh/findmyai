@@ -7,20 +7,42 @@
         "build": "tsc",
         "start": "node dist/index.js",
         "lint": "eslint src/**/*.ts",
-        "migrate": "prisma migrate dev"
+        "migrate": "prisma migrate dev",
+        "seed": "ts-node-dev prisma/seed.ts",
+        "test": "jest"
     },
     "dependencies": {
-        "fastify": "^4.26.1",
+        "@anthropic-ai/sdk": "^0.70.1",
+        "@aws-sdk/client-s3": "^3.937.0",
+        "@aws-sdk/s3-request-presigner": "^3.937.0",
+        "@fastify/cors": "^10.0.0",
+        "@fastify/jwt": "^10.0.0",
+        "@fastify/rate-limit": "^10.3.0",
         "@prisma/client": "^5.9.1",
-        "dotenv": "^16.4.1",
+        "@types/bcrypt": "^6.0.0",
+        "bcrypt": "^6.0.0",
+        "bcryptjs": "^3.0.3",
         "cors": "^2.8.5",
-        "@fastify/cors": "^9.0.1"
+        "cross-fetch": "^4.1.0",
+        "dotenv": "^16.4.1",
+        "fastify": "^5.0.0",
+        "fastify-type-provider-zod": "^6.1.0",
+        "ioredis": "^5.8.2",
+        "zod": "^4.1.12"
     },
     "devDependencies": {
-        "typescript": "^5.3.3",
-        "ts-node-dev": "^2.0.0",
+        "@types/bcryptjs": "^2.4.6",
+        "@types/ioredis": "^4.28.10",
+        "@types/jest": "^30.0.0",
         "@types/node": "^20.11.16",
+        "@types/supertest": "^6.0.3",
+        "eslint": "^8.56.0",
+        "jest": "^30.2.0",
+        "jest-mock-extended": "^4.0.0",
         "prisma": "^5.9.1",
-        "eslint": "^8.56.0"
+        "supertest": "^7.1.4",
+        "ts-jest": "^29.4.5",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.3.3"
     }
 }

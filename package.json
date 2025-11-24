@@ -1,21 +1,27 @@
 {
-    "name": "find-my-ai",
+    "name": "findmyai",
     "version": "1.0.0",
-    "private": true,
+    "description": "AI Tools Directory Platform",
+    "scripts": {
+        "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+        "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+        "test": "npm test --workspaces",
+        "test:e2e": "npm run test:e2e --workspace=frontend",
+        "test:e2e:headed": "npm run test:e2e:headed --workspace=frontend",
+        "lint": "npm run lint --workspaces",
+        "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+        "type-check": "npm run type-check --workspaces"
+    },
     "workspaces": [
         "backend",
         "frontend"
     ],
-    "scripts": {
-        "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
-        "build": "npm run build --workspaces",
-        "lint": "npm run lint --workspaces",
-        "test": "npm run test --workspaces"
-    },
     "devDependencies": {
         "concurrently": "^8.2.2",
-        "typescript": "^5.3.3",
-        "eslint": "^8.56.0",
-        "prettier": "^3.2.4"
+        "prettier": "^3.1.0"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=9.0.0"
     }
 }

@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -7,8 +8,109 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+  CREATOR
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(USER)
+  name         String?
+  avatar_url   String?
+  createdAt    DateTime  @default(now())
+  reviews      Review[]
+  submissions  Submission[]
+}
+
+model Tool {
+  id           Int        @id @default(autoincrement())
+  name         String
+  slug         String     @unique
+  description  String
+  website      String
+  pricing      String?
+  platforms    String[]
+  models_used  String[]
+  logo_url     String?
+  screenshots  String[]
+  verified     Boolean    @default(false)
+  average_rating Float?    @default(0)
+  review_count   Int       @default(0)
+  trending_score Float?    @default(0)
+  is_trending    Boolean   @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  categories   Category[]
+  tags         Tag[]
+  reviews      Review[]
+  views        View[]
+
+  @@index([slug])
+  @@index([trending_score])
+  @@index([is_trending])
+}
+
+model Category {
+  id              Int      @id @default(autoincrement())
+  name            String
+  slug            String   @unique
+  seo_title       String?
+  seo_description String?
+  seo_h1          String?
+  seo_content     String?
+  tools           Tool[]
+
+  @@index([slug])
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  tools Tool[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  title     String?
+  body      String?
+  createdAt DateTime @default(now())
+
+  toolId    Int
+  tool      Tool     @relation(fields: [toolId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Submission {
+  id             Int              @id @default(autoincrement())
+  submitterName  String
+  submitterEmail String
+  toolData       Json
+  status         SubmissionStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+
+  userId         Int?
+  user           User?            @relation(fields: [userId], references: [id])
+}
+
+model View {
+  id        Int      @id @default(autoincrement())
+  ipHash    String?
+  sessionId String?
+  createdAt DateTime @default(now())
+
+  toolId    Int
+  tool      Tool     @relation(fields: [toolId], references: [id])
 }

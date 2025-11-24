@@ -1,21 +1,37 @@
-import { useState, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import Header from './components/Header'
+import Footer from './components/Footer'
+import ToolList from './pages/ToolList'
+import ToolDetail from './pages/ToolDetail'
+import Login from './pages/Login'
+import Submit from './pages/Submit'
+import ChatWidget from './components/ChatWidget'
+import AdminGuard from './components/AdminGuard'
+import SubmissionsList from './pages/admin/SubmissionsList'
+import SubmissionReview from './pages/admin/SubmissionReview'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AnalyticsDashboard from './pages/admin/AnalyticsDashboard'
 
 function App() {
-    const [message, setMessage] = useState('')
-
-    useEffect(() => {
-        fetch('/api/')
-            .then((res) => res.json())
-            .then((data) => setMessage(data.hello))
-            .catch((err) => console.error(err))
-    }, [])
-
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-md">
-                <h1 className="text-3xl font-bold text-blue-600 mb-4">FindMyAI</h1>
-                <p className="text-gray-700">Backend says: {message || 'Loading...'}</p>
-            </div>
+        <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-grow">
+                <Routes>
+                    <Route path="/" element={<ToolList />} />
+                    <Route path="/tools" element={<ToolList />} />
+                    <Route path="/tools/:slug" element={<ToolDetail />} />
+                    <Route path="/submit" element={<Submit />} />
+                    <Route path="/login" element={<Login />} />
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+                    <Route path="/admin/analytics" element={<AdminGuard><AnalyticsDashboard /></AdminGuard>} />
+                    <Route path="/admin/submissions" element={<AdminGuard><SubmissionsList /></AdminGuard>} />
+                    <Route path="/admin/submissions/:id" element={<AdminGuard><SubmissionReview /></AdminGuard>} />
+                </Routes>
+            </main>
+            <Footer />
+            <ChatWidget />
         </div>
     )
 }
