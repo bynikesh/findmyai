@@ -3,7 +3,6 @@ services:
   - type: web
     name: findmyai-backend
     runtime: node
-    
     plan: free
     branch: main
     rootDir: backend
@@ -44,7 +43,6 @@ services:
   - type: web
     name: findmyai-frontend
     runtime: static
-    region: oregon
     branch: main
     rootDir: frontend
     buildCommand: npm install && npm run build
