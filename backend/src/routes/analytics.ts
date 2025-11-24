@@ -140,7 +140,7 @@ export default async function (app: FastifyInstance) {
                 });
 
                 // Combine data
-                const results = viewCounts.map((vc) => {
+                const results = viewCounts.map((vc: any) => {
                     const tool = tools.find((t: any) => t.id === vc.toolId);
                     return {
                         ...tool,
