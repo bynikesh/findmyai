@@ -115,9 +115,20 @@ export const createTool = async (
     request: FastifyRequest<{ Body: any }>,
     reply: FastifyReply,
 ) => {
-    // Admin check should be done in route preHandler or here
+    const body = request.body as any;
+    const { categoryIds, ...toolData } = body;
+
     const tool = await prisma.tool.create({
-        data: request.body as any,
+        data: {
+            ...toolData,
+            categories: categoryIds?.length > 0 ? {
+                connect: categoryIds.map((id: number) => ({ id }))
+            } : undefined,
+        },
+        include: {
+            categories: true,
+            tags: true,
+        },
     });
     return tool;
 };

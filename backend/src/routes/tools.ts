@@ -60,23 +60,7 @@ export default async function (app: FastifyInstance) {
         toolController.createTool,
     );
 
-    fastify.post(
-        '/tools/:id/reviews',
-        {
-            onRequest: [app.authenticate],
-            schema: {
-                params: z.object({
-                    id: z.string(),
-                }),
-                body: z.object({
-                    rating: z.number().min(1).max(5),
-                    title: z.string().optional(),
-                    body: z.string().optional(),
-                }),
-            },
-        },
-        toolController.createReview,
-    );
+
 
     fastify.post(
         '/submissions',
@@ -95,6 +79,18 @@ export default async function (app: FastifyInstance) {
     fastify.get('/categories', async () => {
         const { default: prisma } = await import('../lib/prisma');
         return prisma.category.findMany();
+    });
+
+    fastify.get('/categories/featured', async () => {
+        const { default: prisma } = await import('../lib/prisma');
+        return prisma.category.findMany({
+            where: { featured: true },
+            include: {
+                _count: {
+                    select: { tools: true }
+                }
+            }
+        });
     });
 
     fastify.get('/tags', async () => {

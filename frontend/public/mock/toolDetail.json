@@ -1,0 +1,93 @@
+{
+    "id": "awesome-ai",
+    "name": "Awesome AI",
+    "slug": "awesome-ai",
+    "logo": "https://via.placeholder.com/150",
+    "badges": [
+        "AI",
+        "Productivity",
+        "Featured"
+    ],
+    "shortDescription": "An AI assistant that boosts productivity by automating daily tasks.",
+    "longDescription": "<p>Awesome AI is a cutting-edge artificial intelligence tool designed to streamline your workflow. It integrates seamlessly with your favorite apps to automate repetitive tasks, generate content, and provide intelligent insights.</p><p>With its advanced natural language processing capabilities, Awesome AI can understand complex queries and deliver accurate results in seconds.</p>",
+    "pros": [
+        "Easy to use interface",
+        "Fast response times",
+        "Seamless integration",
+        "Affordable pricing"
+    ],
+    "cons": [
+        "Limited offline capabilities",
+        "Requires internet connection"
+    ],
+    "useCases": [
+        "Content creation",
+        "Research assistance",
+        "Email automation",
+        "Code generation"
+    ],
+    "pricing": [
+        {
+            "plan": "Free",
+            "price": "$0",
+            "features": [
+                "Basic access",
+                "5 queries/day",
+                "Community support"
+            ]
+        },
+        {
+            "plan": "Pro",
+            "price": "$19/mo",
+            "features": [
+                "Unlimited queries",
+                "Priority support",
+                "Advanced models",
+                "API access"
+            ]
+        },
+        {
+            "plan": "Enterprise",
+            "price": "Custom",
+            "features": [
+                "Dedicated account manager",
+                "SSO",
+                "Custom integrations",
+                "SLA"
+            ]
+        }
+    ],
+    "gallery": [
+        "https://via.placeholder.com/800x450?text=Dashboard",
+        "https://via.placeholder.com/800x450?text=Editor",
+        "https://via.placeholder.com/800x450?text=Settings"
+    ],
+    "alternatives": [
+        {
+            "id": "tool-b",
+            "name": "Tool B",
+            "slug": "tool-b",
+            "logo": "https://via.placeholder.com/50"
+        },
+        {
+            "id": "tool-c",
+            "name": "Tool C",
+            "slug": "tool-c",
+            "logo": "https://via.placeholder.com/50"
+        }
+    ],
+    "faq": [
+        {
+            "q": "How does it work?",
+            "a": "It uses GPT-4 to process your inputs and generate responses."
+        },
+        {
+            "q": "Is there a free trial?",
+            "a": "Yes, we offer a 14-day free trial for the Pro plan."
+        },
+        {
+            "q": "Can I cancel anytime?",
+            "a": "Absolutely, you can cancel your subscription at any time from your dashboard."
+        }
+    ]
+}

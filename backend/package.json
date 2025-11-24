@@ -9,6 +9,7 @@
         "lint": "eslint src/**/*.ts",
         "migrate": "prisma migrate dev",
         "seed": "ts-node-dev prisma/seed.ts",
+        "seed:awesome": "ts-node-dev scripts/seed_awesome_ai.ts",
         "test": "jest"
     },
     "dependencies": {

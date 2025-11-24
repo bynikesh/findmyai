@@ -36,14 +36,67 @@ model Tool {
   id           Int        @id @default(autoincrement())
   name         String
   slug         String     @unique
-  description  String
-  website      String
+  
+  // Basic Info
+  short_description String?  @db.Text
+  tagline      String?
+  
+  // Detailed Information
+  description  String     @db.Text
+  key_features String[]
+  pros         String[]
+  cons         String[]
+  ideal_for    String?
+  
+  // Pricing & Access
+  pricing_type String?    // Free, Freemium, Paid, One-time, Open Source
   pricing      String?
+  price_range  String?
+  free_trial   Boolean    @default(false)
+  open_source  Boolean    @default(false)
+  repo_url     String?
+  
+  // Technical Info
+  website      String
   platforms    String[]
   models_used  String[]
+  primary_model String?
+  integrations String[]
+  api_available Boolean   @default(false)
+  api_docs_url String?
+  
+  // Branding
   logo_url     String?
+  brand_color_primary   String?
+  brand_color_secondary String?
   screenshots  String[]
+  
+  // Metadata
+  release_year Int?
+  company_name String?
+  company_size String?
+  
+  // SEO
+  seo_title    String?
+  seo_meta_description String?
+  social_share_image String?
+  
+  // Engagement
+  use_cases    String[]
+  allow_reviews Boolean   @default(true)
+  
+  // Admin Status
   verified     Boolean    @default(false)
+  featured     Boolean    @default(false)
+  trending     Boolean    @default(false)
+  editors_choice Boolean  @default(false)
+  still_active Boolean    @default(true)
+  
+  // Analytics
+  click_count  Int        @default(0)
+  view_count   Int        @default(0)
+  
+  // Existing
   average_rating Float?    @default(0)
   review_count   Int       @default(0)
   trending_score Float?    @default(0)
@@ -59,12 +112,15 @@ model Tool {
   @@index([slug])
   @@index([trending_score])
   @@index([is_trending])
+  @@index([featured])
+  @@index([verified])
 }
 
 model Category {
   id              Int      @id @default(autoincrement())
   name            String
   slug            String   @unique
+  featured        Boolean  @default(false)
   seo_title       String?
   seo_description String?
   seo_h1          String?
@@ -72,6 +128,7 @@ model Category {
   tools           Tool[]
 
   @@index([slug])
+  @@index([featured])
 }
 
 model Tag {

@@ -29,6 +29,8 @@ export const buildApp = () => {
     app.register(authRoutes, { prefix: '/api' });
     app.register(import('./routes/ai'), { prefix: '/api' });
     app.register(import('./routes/admin'), { prefix: '/api' });
+    app.register(import('./routes/toolsAdmin'), { prefix: '/api' });
+    app.register(import('./routes/categoriesAdmin'), { prefix: '/api' });
     app.register(import('./routes/reviews'), { prefix: '/api' });
     app.register(import('./routes/uploads'), { prefix: '/api' });
     app.register(import('./routes/analytics'), { prefix: '/api' });
