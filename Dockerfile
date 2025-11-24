@@ -35,11 +35,12 @@ FROM node:20-bullseye AS runtime
 
 WORKDIR /app
 
-# Copy backend package files
+# Copy package files
+COPY package*.json ./
 COPY backend/package*.json ./backend/
 
-# Copy backend node_modules from builder (production dependencies)
-COPY --from=builder /app/backend/node_modules ./backend/node_modules
+# Copy node_modules from builder (includes all workspace dependencies)
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copy built assets from builder
 COPY --from=builder /app/frontend/dist ./frontend/dist
