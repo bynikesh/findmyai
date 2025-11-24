@@ -3,7 +3,7 @@ services:
   - type: web
     name: findmyai-backend
     runtime: node
-    region: oregon
+    
     plan: free
     branch: main
     rootDir: backend
