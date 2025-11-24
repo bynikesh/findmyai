@@ -1,44 +1,42 @@
-# Multi‑stage Dockerfile for Railway deployment (frontend + backend)
-# -------------------------------------------------
-#  Build stage – compile frontend (Vite) and backend (TS)
-# -------------------------------------------------
+# -------------------------------
+#  Build stage – compile frontend + backend
+# -------------------------------
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install root dependencies (frontend + backend share some)
+# Install root dependencies (optional if you have shared packages)
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
-# Install backend deps (they are in ./backend)
+# Backend deps
 COPY backend/package*.json ./backend/
-RUN cd backend && npm ci
+RUN cd backend && npm install
 
-# Install frontend deps
+# Frontend deps
 COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm ci
+RUN cd frontend && npm install
 
 # Copy source code
 COPY . .
 
-# Build frontend
+# Build frontend (Vite)
 WORKDIR /app/frontend
-RUN npm run build   # creates ./dist
+RUN npm run build   # produces ./dist
 
-# Build backend (TS -> JS)
+# Build backend (TS -> JS if applicable)
 WORKDIR /app/backend
-RUN npm run build   # creates ./dist
+RUN npm run build   # produces ./dist
 
-# -------------------------------------------------
-#  Runtime stage – serve static files + API
-# -------------------------------------------------
+# -------------------------------
+#  Runtime stage – serve backend + static frontend
+# -------------------------------
 FROM node:20-alpine AS runtime
 
 WORKDIR /app
 
-# Install only production deps for backend
+# Install only production backend dependencies
 COPY backend/package*.json ./backend/
-COPY backend/package-lock.json ./backend/
 RUN cd backend && npm install --omit=dev
 
 # Copy built assets
@@ -46,9 +44,9 @@ COPY --from=builder /app/frontend/dist ./frontend/dist
 COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/backend/prisma ./backend/prisma
 
-# Expose Fastify port (Railway expects $PORT env var, default 3000)
-EXPOSE 3000
+# Expose port (Railway provides $PORT env)
 ENV NODE_ENV=production
+EXPOSE 3000
 
-# Start the Fastify server
+# Start backend (Fastify / Express)
 CMD ["node", "backend/dist/index.js"]
