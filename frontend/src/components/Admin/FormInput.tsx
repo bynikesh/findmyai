@@ -29,7 +29,7 @@ const FormInput: React.FC<FormInputProps> = ({
             <label className="block text-sm font-medium leading-6 text-gray-900">
                 {label}
             </label>
-            <div className="mt-2">
+            <div className="mt-2 relative">
                 {textarea ? (
                     <textarea
                         rows={rows}
@@ -43,12 +43,19 @@ const FormInput: React.FC<FormInputProps> = ({
                     />
                 )}
             </div>
-            {error && (
-                <p className="mt-2 text-sm text-red-600">{error}</p>
-            )}
-            {helperText && !error && (
-                <p className="mt-2 text-sm text-gray-500">{helperText}</p>
-            )}
+            <div className="mt-1 flex justify-between">
+                {error && (
+                    <p className="text-sm text-red-600">{error}</p>
+                )}
+                {!error && helperText && (
+                    <p className="text-sm text-gray-500">{helperText}</p>
+                )}
+                {props.maxLength && (
+                    <p className="text-xs text-gray-400">
+                        {String(props.value || '').length}/{props.maxLength}
+                    </p>
+                )}
+            </div>
         </div>
     );
 };

@@ -73,7 +73,7 @@ Keep your response concise, objective, and helpful. Focus on practical insights.
 
     try {
         const response = await client.messages.create({
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-3-haiku-20240307',
             max_tokens: 1024,
             messages: [
                 {
@@ -101,6 +101,82 @@ Keep your response concise, objective, and helpful. Focus on practical insights.
     } catch (error) {
         console.error('Error calling Claude API:', error);
         throw new Error('Failed to generate AI summary');
+    }
+}
+
+export interface ToolDescriptionRequest {
+    name: string;
+    website: string;
+    tagline?: string;
+    features?: string[];
+}
+
+export interface ToolDescriptionResponse {
+    short_description: string;
+    description: string;
+    features: string[];
+    use_cases: string[];
+    tagline: string;
+}
+
+/**
+ * Generate a comprehensive tool description using Claude AI
+ */
+export async function generateToolDescription(
+    request: ToolDescriptionRequest
+): Promise<ToolDescriptionResponse> {
+    const client = getClaudeClient();
+
+    if (!client) {
+        throw new Error('Claude AI is not configured');
+    }
+
+    const { name, website, tagline, features } = request;
+
+    const prompt = `You are an expert AI copywriter. Write a compelling and accurate description for an AI tool.
+
+Tool Name: ${name}
+Website: ${website}
+${tagline ? `Tagline: ${tagline}` : ''}
+${features && features.length > 0 ? `Known Features: ${features.join(', ')}` : ''}
+
+Please generate a JSON response with the following structure:
+{
+  "short_description": "A concise 1-2 sentence summary (max 160 chars) optimized for SEO",
+  "description": "A detailed 2-3 paragraph description highlighting the tool's value proposition, key capabilities, and target audience.",
+  "features": ["feature1", "feature2", "feature3", "feature4", "feature5"],
+  "use_cases": ["usecase1", "usecase2", "usecase3"],
+  "tagline": "A catchy, short tagline (max 60 chars)"
+}
+
+Ensure the tone is professional yet engaging. Focus on benefits and unique selling points.`;
+
+    try {
+        const response = await client.messages.create({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 1024,
+            messages: [
+                {
+                    role: 'user',
+                    content: prompt,
+                },
+            ],
+        });
+
+        const content = response.content[0];
+        if (content.type !== 'text') {
+            throw new Error('Unexpected response type from Claude');
+        }
+
+        const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            throw new Error('Could not parse JSON from Claude response');
+        }
+
+        return JSON.parse(jsonMatch[0]) as ToolDescriptionResponse;
+    } catch (error) {
+        console.error('Error generating tool description:', error);
+        throw new Error('Failed to generate tool description');
     }
 }
 
@@ -180,7 +256,7 @@ export async function generateToolComparison(
         .map((tool, idx) => {
             const platforms = tool.platforms?.length ? tool.platforms.join(', ') : 'Web';
             const models = tool.models_used?.length ? tool.models_used.join(', ') : 'N/A';
-            
+
             return `
 Tool ${idx + 1}: ${tool.name}
 - Description: ${tool.description}
@@ -249,7 +325,7 @@ IMPORTANT:
 
     try {
         const response = await client.messages.create({
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-3-haiku-20240307',
             max_tokens: 2048,
             messages: [
                 {
@@ -414,7 +490,7 @@ export async function generateChatResponse(
         if (userProfile.industry) parts.push(`Industry: ${userProfile.industry}`);
         if (userProfile.teamSize) parts.push(`Team Size: ${userProfile.teamSize}`);
         if (userProfile.budget) parts.push(`Budget: ${userProfile.budget}`);
-        
+
         if (parts.length > 0) {
             profileContext = `\n\nUSER PROFILE:\n${parts.join('\n')}`;
         }
@@ -439,7 +515,7 @@ export async function generateChatResponse(
 
     try {
         const response = await client.messages.create({
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-3-haiku-20240307',
             max_tokens: 1024,
             system: ASSISTANT_SYSTEM_PROMPT + profileContext + toolsContext,
             messages: conversationMessages as any,
@@ -460,7 +536,7 @@ export async function generateChatResponse(
         while ((match = toolMentionRegex.exec(messageText)) !== null) {
             const toolName = match[1].trim();
             const reason = match[2].trim();
-            
+
             // Find the tool in our database
             const tool = availableTools.find(
                 t => t.name.toLowerCase() === toolName.toLowerCase()

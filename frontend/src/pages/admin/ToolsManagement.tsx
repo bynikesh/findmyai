@@ -1,20 +1,80 @@
 import React, { useEffect, useState } from 'react';
-import { PencilIcon, TrashIcon, EyeIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, EyeIcon, PlusIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/Admin/AdminLayout';
 import DataTable from '../../components/Admin/DataTable';
 import Modal from '../../components/Admin/Modal';
 import FormInput from '../../components/Admin/FormInput';
 import CategorySelect from '../../components/Admin/CategorySelect';
+import CollapsibleSection from '../../components/Admin/CollapsibleSection';
+import ArrayInput from '../../components/Admin/ArrayInput';
 
 interface Tool {
     id: number;
     name: string;
     slug: string;
+    tagline?: string;
+    short_description?: string;
     description: string;
     website: string;
+
+    // Detailed Info
+    key_features: string[];
+    pros: string[];
+    cons: string[];
+    ideal_for?: string;
+
+    // Pricing
+    pricing_type?: string;
     pricing: string | null;
+    price_range?: string;
+    free_trial: boolean;
+    open_source: boolean;
+    repo_url?: string;
+
+    // Technical
+    platforms: string[];
+    models_used: string[];
+    primary_model?: string;
+    integrations: string[];
+    api_available: boolean;
+    api_docs_url?: string;
+
+    // Branding
+    logo_url: string | null;
+    brand_color_primary?: string;
+    brand_color_secondary?: string;
+    screenshots: string[];
+
+    // Metadata
+    release_year?: number;
+    company_name?: string;
+    company_size?: string;
+
+    // SEO
+    seo_title?: string;
+    seo_meta_description?: string;
+    social_share_image?: string;
+
+    // Engagement
+    use_cases: string[];
+    allow_reviews: boolean;
+
+    // Admin Status
     verified: boolean;
+    featured: boolean;
+    trending: boolean;
+    editors_choice: boolean;
+    still_active: boolean;
+
+    // Analytics
+    click_count: number;
+    view_count: number;
+
+    // Existing
+    average_rating: number | null;
+    review_count: number;
     createdAt: string;
+    categories: Category[];
 }
 
 interface Category {
@@ -24,41 +84,200 @@ interface Category {
 }
 
 interface NewToolForm {
+    // Basic Info
     name: string;
     slug: string;
-    description: string;
+    tagline: string;
+    short_description: string;
     website: string;
+
+    // Detailed Information
+    description: string;
+    key_features: string[];
+    pros: string[];
+    cons: string[];
+    ideal_for: string;
+
+    // Pricing & Access
+    pricing_type: string;
     pricing: string;
+    price_range: string;
+    free_trial: boolean;
+    open_source: boolean;
+    repo_url: string;
+
+    // Technical Info
     platforms: string;
     models_used: string;
+    primary_model: string;
+    integrations: string[];
+    api_available: boolean;
+    api_docs_url: string;
+
+    // Branding
     logo_url: string;
+    brand_color_primary: string;
+    brand_color_secondary: string;
     screenshots: string;
+
+    // Metadata
+    release_year: string;
+    company_name: string;
+    company_size: string;
+
+    // SEO
+    seo_title: string;
+    seo_meta_description: string;
+    social_share_image: string;
+
+    // Engagement
+    use_cases: string[];
+    allow_reviews: boolean;
+
+    // Admin Status
+    verified: boolean;
+    featured: boolean;
+    trending: boolean;
+    editors_choice: boolean;
+    still_active: boolean;
+
+    // Categorization
     categoryIds: number[];
 }
+
+const getInitialToolForm = (): NewToolForm => ({
+    // Basic Info
+    name: '',
+    slug: '',
+    tagline: '',
+    short_description: '',
+    website: '',
+
+    // Detailed Information
+    description: '',
+    key_features: [],
+    pros: [],
+    cons: [],
+    ideal_for: '',
+
+    // Pricing & Access
+    pricing_type: 'Freemium',
+    pricing: '',
+    price_range: '',
+    free_trial: false,
+    open_source: false,
+    repo_url: '',
+
+    // Technical Info
+    platforms: '',
+    models_used: '',
+    primary_model: '',
+    integrations: [],
+    api_available: false,
+    api_docs_url: '',
+
+    // Branding
+    logo_url: '',
+    brand_color_primary: '#3B82F6',
+    brand_color_secondary: '#8B5CF6',
+    screenshots: '',
+
+    // Metadata
+    release_year: new Date().getFullYear().toString(),
+    company_name: '',
+    company_size: '',
+
+    // SEO
+    seo_title: '',
+    seo_meta_description: '',
+    social_share_image: '',
+
+    // Engagement
+    use_cases: [],
+    allow_reviews: true,
+
+    // Admin Status
+    verified: true,
+    featured: false,
+    trending: false,
+    editors_choice: false,
+    still_active: true,
+
+    // Categorization
+    categoryIds: [],
+});
+
+const mapToolToForm = (tool: Tool): NewToolForm => ({
+    name: tool.name,
+    slug: tool.slug,
+    tagline: tool.tagline || '',
+    short_description: tool.short_description || '',
+    website: tool.website,
+    description: tool.description,
+    key_features: tool.key_features || [],
+    pros: tool.pros || [],
+    cons: tool.cons || [],
+    ideal_for: tool.ideal_for || '',
+    pricing_type: tool.pricing_type || 'Freemium',
+    pricing: tool.pricing || '',
+    price_range: tool.price_range || '',
+    free_trial: tool.free_trial || false,
+    open_source: tool.open_source || false,
+    repo_url: tool.repo_url || '',
+    platforms: tool.platforms?.join(', ') || '',
+    models_used: tool.models_used?.join(', ') || '',
+    primary_model: tool.primary_model || '',
+    integrations: tool.integrations || [],
+    api_available: tool.api_available || false,
+    api_docs_url: tool.api_docs_url || '',
+    logo_url: tool.logo_url || '',
+    brand_color_primary: tool.brand_color_primary || '#3B82F6',
+    brand_color_secondary: tool.brand_color_secondary || '#8B5CF6',
+    screenshots: tool.screenshots?.join(', ') || '',
+    release_year: tool.release_year?.toString() || '',
+    company_name: tool.company_name || '',
+    company_size: tool.company_size || '',
+    seo_title: tool.seo_title || '',
+    seo_meta_description: tool.seo_meta_description || '',
+    social_share_image: tool.social_share_image || '',
+    use_cases: tool.use_cases || [],
+    allow_reviews: tool.allow_reviews ?? true,
+    verified: tool.verified,
+    featured: tool.featured,
+    trending: tool.trending,
+    editors_choice: tool.editors_choice,
+    still_active: tool.still_active,
+    categoryIds: tool.categories?.map(c => c.id) || [],
+});
 
 export default function ToolsManagement() {
     const [tools, setTools] = useState<Tool[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [editingTool, setEditingTool] = useState<Tool | null>(null);
-    const [editingCategoryIds, setEditingCategoryIds] = useState<number[]>([]);
+
+    // Unified Form State
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingToolId, setEditingToolId] = useState<number | null>(null);
+    const [formData, setFormData] = useState<NewToolForm>(getInitialToolForm());
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
+    const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+
+    // Auto‑generate slug from name if slug is empty
+    useEffect(() => {
+        if (!formData.slug && formData.name) {
+            const generated = formData.name
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9\-]/g, '');
+            setFormData(prev => ({ ...prev, slug: generated }));
+        }
+    }, [formData.name]);
+
     const [deletingTool, setDeletingTool] = useState<Tool | null>(null);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [newTool, setNewTool] = useState<NewToolForm>({
-        name: '',
-        slug: '',
-        description: '',
-        website: '',
-        pricing: '',
-        platforms: '',
-        models_used: '',
-        logo_url: '',
-        screenshots: '',
-        categoryIds: [],
-    });
 
     useEffect(() => {
         fetchTools();
@@ -88,18 +307,10 @@ export default function ToolsManagement() {
         }
     };
 
-    const handleEdit = async (tool: Tool) => {
-        setEditingTool(tool);
-        // Fetch full tool data with categories
-        try {
-            const res = await fetch(`http://localhost:3000/api/tools/${tool.slug}`);
-            const data = await res.json();
-            setEditingCategoryIds(data.categories?.map((c: any) => c.id) || []);
-        } catch (error) {
-            console.error('Failed to fetch tool categories:', error);
-            setEditingCategoryIds([]);
-        }
-        setIsEditModalOpen(true);
+    const handleEdit = (tool: Tool) => {
+        setFormData(mapToolToForm(tool));
+        setEditingToolId(tool.id);
+        setIsFormOpen(true);
     };
 
     const handleDelete = (tool: Tool) => {
@@ -111,7 +322,7 @@ export default function ToolsManagement() {
         if (!deletingTool) return;
 
         try {
-            const res = await fetch(`http://localhost:3000/api/admin/tools/${deletingTool.id}`, {
+            const res = await fetch(`/api/admin/tools/${deletingTool.id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -123,97 +334,162 @@ export default function ToolsManagement() {
                 setIsDeleteModalOpen(false);
                 setDeletingTool(null);
             } else {
-                alert('Failed to delete tool');
+                console.error('Failed to delete tool');
             }
         } catch (error) {
             console.error('Error deleting tool:', error);
-            alert('Failed to delete tool');
         }
     };
 
-    const handleSaveEdit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!editingTool) return;
+    const handleAutoFetch = async () => {
+        if (!formData.website || !/^https?:\/\/[^\s]+$/.test(formData.website)) {
+            setErrors({ ...errors, website: 'Valid URL required for auto-fetch' });
+            return;
+        }
 
+        setIsFetchingMetadata(true);
         try {
-            const res = await fetch(`http://localhost:3000/api/admin/tools/${editingTool.id}`, {
-                method: 'PUT',
+            const res = await fetch('/api/admin/tools/fetch-metadata', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-                body: JSON.stringify({
-                    ...editingTool,
-                    categoryIds: editingCategoryIds,
-                }),
+                body: JSON.stringify({ url: formData.website }),
             });
 
             if (res.ok) {
-                const updatedTool = await res.json();
-                setTools(tools.map((t) => (t.id === updatedTool.id ? updatedTool : t)));
-                setIsEditModalOpen(false);
-                setEditingTool(null);
+                const data = await res.json();
+                setFormData(prev => ({
+                    ...prev,
+                    name: prev.name || data.title || '',
+                    description: prev.description || data.description || '',
+                    seo_title: prev.seo_title || data.title || '',
+                    seo_meta_description: prev.seo_meta_description || data.description || '',
+                    logo_url: prev.logo_url || data.icon || '',
+                    social_share_image: prev.social_share_image || data.image || '',
+                }));
             } else {
-                alert('Failed to update tool');
+                console.error('Failed to fetch metadata');
+                alert('Failed to fetch metadata');
             }
         } catch (error) {
-            console.error('Error updating tool:', error);
-            alert('Failed to update tool');
+            console.error('Error fetching metadata:', error);
+            alert('Error fetching metadata');
+        } finally {
+            setIsFetchingMetadata(false);
         }
     };
 
-    const handleCreateTool = async (e: React.FormEvent) => {
-        e.preventDefault();
 
-        // Auto-generate slug from name if not provided
-        const slug = newTool.slug || newTool.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
+    const handleGenerateDescription = async () => {
+        if (!formData.name || !formData.website) {
+            setErrors({ ...errors, description: 'Name and Website required for AI generation' });
+            return;
+        }
+
+        setIsGeneratingDescription(true);
         try {
-            const res = await fetch('http://localhost:3000/api/tools', {
+            const res = await fetch('/api/admin/tools/generate-description', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify({
-                    name: newTool.name,
-                    slug,
-                    description: newTool.description,
-                    website: newTool.website,
-                    pricing: newTool.pricing || null,
-                    platforms: newTool.platforms ? newTool.platforms.split(',').map(p => p.trim()) : [],
-                    models_used: newTool.models_used ? newTool.models_used.split(',').map(m => m.trim()) : [],
-                    logo_url: newTool.logo_url || null,
-                    screenshots: newTool.screenshots ? newTool.screenshots.split(',').map(s => s.trim()) : [],
-                    verified: true, // Admin-created tools are verified by default
-                    categoryIds: newTool.categoryIds,
+                    name: formData.name,
+                    website: formData.website,
+                    tagline: formData.tagline,
+                    features: formData.key_features,
                 }),
             });
 
             if (res.ok) {
-                const createdTool = await res.json();
-                setTools([createdTool, ...tools]);
-                setIsCreateModalOpen(false);
-                setNewTool({
-                    name: '',
-                    slug: '',
-                    description: '',
-                    website: '',
-                    pricing: '',
-                    platforms: '',
-                    models_used: '',
-                    logo_url: '',
-                    screenshots: '',
-                    categoryIds: [],
-                });
+                const data = await res.json();
+                setFormData(prev => ({
+                    ...prev,
+                    short_description: data.short_description || prev.short_description,
+                    description: data.description || prev.description,
+                    tagline: data.tagline || prev.tagline,
+                    key_features: data.features?.length ? data.features : prev.key_features,
+                    use_cases: data.use_cases?.length ? data.use_cases : prev.use_cases,
+                }));
             } else {
-                const errorData = await res.json();
-                alert(`Failed to create tool: ${errorData.message || 'Unknown error'}`);
+                console.error('Failed to generate description');
+                alert('Failed to generate description');
             }
         } catch (error) {
-            console.error('Error creating tool:', error);
-            alert('Failed to create tool');
+            console.error('Error generating description:', error);
+            alert('Error generating description');
+        } finally {
+            setIsGeneratingDescription(false);
         }
+    };
+
+    const handleSaveTool = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Validation
+        const newErrors: Record<string, string> = {};
+        if (!formData.name.trim()) newErrors.name = 'Name is required';
+        if (!formData.slug.trim()) newErrors.slug = 'Slug is required';
+        if (!formData.website.trim()) {
+            newErrors.website = 'Website is required';
+        } else if (!/^https?:\/\/[^\s]+$/.test(formData.website)) {
+            newErrors.website = 'Invalid URL';
+        }
+        if (!formData.description.trim()) newErrors.description = 'Description is required';
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        setErrors({});
+
+        const isEditing = editingToolId !== null;
+        const url = isEditing ? `/api/admin/tools/${editingToolId}` : '/api/tools';
+        const method = isEditing ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (res.ok) {
+                const savedTool = await res.json();
+
+                if (isEditing) {
+                    setTools(tools.map((t) => (t.id === savedTool.id ? savedTool : t)));
+                } else {
+                    setTools([savedTool, ...tools]);
+                }
+
+                setIsFormOpen(false);
+                setFormData(getInitialToolForm());
+                setEditingToolId(null);
+                setErrors({});
+            } else {
+                const errorData = await res.json();
+                console.error('Failed to save tool:', errorData);
+                alert(`Failed to save tool: ${errorData.message || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error saving tool:', error);
+            alert('An error occurred while saving the tool');
+        }
+    };
+
+    const openCreateModal = () => {
+        setFormData(getInitialToolForm());
+        setEditingToolId(null);
+        setIsFormOpen(true);
     };
 
     const filteredTools = tools.filter((tool) =>
@@ -272,7 +548,7 @@ export default function ToolsManagement() {
                     <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                         <button
                             type="button"
-                            onClick={() => setIsCreateModalOpen(true)}
+                            onClick={openCreateModal}
                             className="flex items-center gap-x-2 rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                         >
                             <PlusIcon className="h-5 w-5" />
@@ -334,74 +610,334 @@ export default function ToolsManagement() {
                 </div>
             </div>
 
-            {/* Edit Modal */}
+            {/* Unified Tool Modal */}
             <Modal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                title="Edit Tool"
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                title={editingToolId ? "Edit Tool" : "Create New Tool"}
                 size="xl"
                 footer={
                     <>
                         <button
                             type="button"
-                            onClick={() => setIsEditModalOpen(false)}
+                            onClick={() => setIsFormOpen(false)}
                             className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            form="edit-tool-form"
+                            form="tool-form"
                             className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:w-auto"
                         >
-                            Save Changes
+                            {editingToolId ? "Save Changes" : "Create Tool"}
                         </button>
                     </>
                 }
             >
-                {editingTool && (
-                    <form id="edit-tool-form" onSubmit={handleSaveEdit} className="space-y-4">
+                <form id="tool-form" onSubmit={handleSaveTool} className="space-y-4">
+                    <CollapsibleSection title="Basic Info" defaultOpen={true}>
                         <FormInput
                             label="Name"
-                            value={editingTool.name}
-                            onChange={(e) => setEditingTool({ ...editingTool, name: e.target.value })}
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             required
+                            error={errors.name}
                         />
                         <FormInput
                             label="Slug"
-                            value={editingTool.slug}
-                            onChange={(e) => setEditingTool({ ...editingTool, slug: e.target.value })}
-                            required
+                            value={formData.slug}
+                            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                            helperText="Leave empty to auto-generate from name"
+                            error={errors.slug}
                         />
                         <FormInput
-                            label="Website"
-                            type="url"
-                            value={editingTool.website}
-                            onChange={(e) => setEditingTool({ ...editingTool, website: e.target.value })}
-                            required
+                            label="Tagline"
+                            value={formData.tagline}
+                            onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                            helperText="Max 80 characters"
+                            maxLength={80}
                         />
+                        <div className="flex gap-2 items-end">
+                            <div className="flex-grow">
+                                <FormInput
+                                    label="Website URL"
+                                    type="url"
+                                    value={formData.website}
+                                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                                    required
+                                    error={errors.website}
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAutoFetch}
+                                disabled={isFetchingMetadata}
+                                className="mb-5 inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+                                title="Auto-fill from website"
+                            >
+                                {isFetchingMetadata ? (
+                                    <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                                ) : (
+                                    <SparklesIcon className="h-5 w-5" />
+                                )}
+                                Auto-Fetch
+                            </button>
+                        </div>
                         <FormInput
-                            label="Description"
+                            label="Short Description"
                             textarea
-                            rows={4}
-                            value={editingTool.description}
-                            onChange={(e) => setEditingTool({ ...editingTool, description: e.target.value })}
+                            rows={2}
+                            value={formData.short_description}
+                            onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+                            helperText="1-2 lines summary"
+                            maxLength={160}
+                        />
+                    </CollapsibleSection>
+
+                    <CollapsibleSection title="Detailed Information">
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium leading-6 text-gray-900">
+                                Full Description
+                            </label>
+                            <button
+                                type="button"
+                                onClick={handleGenerateDescription}
+                                disabled={isGeneratingDescription}
+                                className="inline-flex items-center gap-x-1.5 rounded-md bg-purple-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50"
+                            >
+                                {isGeneratingDescription ? (
+                                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                                ) : (
+                                    <SparklesIcon className="h-4 w-4" />
+                                )}
+                                Generate with AI
+                            </button>
+                        </div>
+                        <FormInput
+                            label=""
+                            textarea
+                            rows={6}
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             required
+                            error={errors.description}
+                        />
+                        <ArrayInput
+                            label="Key Features"
+                            value={formData.key_features}
+                            onChange={(val) => setFormData({ ...formData, key_features: val })}
+                        />
+                        <ArrayInput
+                            label="Pros"
+                            value={formData.pros}
+                            onChange={(val) => setFormData({ ...formData, pros: val })}
+                        />
+                        <ArrayInput
+                            label="Cons"
+                            value={formData.cons}
+                            onChange={(val) => setFormData({ ...formData, cons: val })}
                         />
                         <FormInput
-                            label="Pricing"
-                            value={editingTool.pricing || ''}
-                            onChange={(e) => setEditingTool({ ...editingTool, pricing: e.target.value })}
+                            label="Ideal For"
+                            value={formData.ideal_for}
+                            onChange={(e) => setFormData({ ...formData, ideal_for: e.target.value })}
+                            placeholder="e.g., Content creators, developers"
                         />
+                    </CollapsibleSection>
+
+                    <CollapsibleSection title="Pricing & Access">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium leading-6 text-gray-900">Pricing Type</label>
+                                <select
+                                    value={formData.pricing_type}
+                                    onChange={(e) => setFormData({ ...formData, pricing_type: e.target.value })}
+                                    className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6"
+                                >
+                                    <option value="Free">Free</option>
+                                    <option value="Freemium">Freemium</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="One-time">One-time</option>
+                                    <option value="Open Source">Open Source</option>
+                                </select>
+                            </div>
+                            <FormInput
+                                label="Price Range"
+                                value={formData.price_range}
+                                onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
+                                placeholder="e.g., $19-99/mo"
+                            />
+                        </div>
+                        <FormInput
+                            label="Pricing Details"
+                            value={formData.pricing}
+                            onChange={(e) => setFormData({ ...formData, pricing: e.target.value })}
+                            helperText="Additional pricing info"
+                        />
+                        <div className="flex gap-6 mt-4">
+                            <div className="flex items-center">
+                                <input
+                                    id="free-trial"
+                                    type="checkbox"
+                                    checked={formData.free_trial}
+                                    onChange={(e) => setFormData({ ...formData, free_trial: e.target.checked })}
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                                />
+                                <label htmlFor="free-trial" className="ml-2 block text-sm text-gray-900">Free Trial?</label>
+                            </div>
+                            <div className="flex items-center">
+                                <input
+                                    id="open-source"
+                                    type="checkbox"
+                                    checked={formData.open_source}
+                                    onChange={(e) => setFormData({ ...formData, open_source: e.target.checked })}
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                                />
+                                <label htmlFor="open-source" className="ml-2 block text-sm text-gray-900">Open Source?</label>
+                            </div>
+                        </div>
+                        {formData.open_source && (
+                            <FormInput
+                                label="Repository URL"
+                                value={formData.repo_url}
+                                onChange={(e) => setFormData({ ...formData, repo_url: e.target.value })}
+                            />
+                        )}
+                    </CollapsibleSection>
+
+                    <CollapsibleSection title="Technical Info">
+                        <FormInput
+                            label="Platforms"
+                            value={formData.platforms}
+                            onChange={(e) => setFormData({ ...formData, platforms: e.target.value })}
+                            helperText="Comma-separated, e.g., Web, iOS, Android"
+                        />
+                        <FormInput
+                            label="Primary Model"
+                            value={formData.primary_model}
+                            onChange={(e) => setFormData({ ...formData, primary_model: e.target.value })}
+                            placeholder="e.g., GPT-4"
+                        />
+                        <FormInput
+                            label="Other Models Used"
+                            value={formData.models_used}
+                            onChange={(e) => setFormData({ ...formData, models_used: e.target.value })}
+                            helperText="Comma-separated"
+                        />
+                        <ArrayInput
+                            label="Integrations"
+                            value={formData.integrations}
+                            onChange={(val) => setFormData({ ...formData, integrations: val })}
+                        />
+                        <div className="flex items-center mt-4">
+                            <input
+                                id="api-available"
+                                type="checkbox"
+                                checked={formData.api_available}
+                                onChange={(e) => setFormData({ ...formData, api_available: e.target.checked })}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                            />
+                            <label htmlFor="api-available" className="ml-2 block text-sm text-gray-900">API Available?</label>
+                        </div>
+                        {formData.api_available && (
+                            <FormInput
+                                label="API Docs URL"
+                                value={formData.api_docs_url}
+                                onChange={(e) => setFormData({ ...formData, api_docs_url: e.target.value })}
+                            />
+                        )}
+                    </CollapsibleSection>
+
+                    <CollapsibleSection title="Branding">
+                        <FormInput
+                            label="Logo URL"
+                            type="url"
+                            value={formData.logo_url}
+                            onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                        />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormInput
+                                label="Primary Brand Color"
+                                type="color"
+                                value={formData.brand_color_primary}
+                                onChange={(e) => setFormData({ ...formData, brand_color_primary: e.target.value })}
+                            />
+                            <FormInput
+                                label="Secondary Brand Color"
+                                type="color"
+                                value={formData.brand_color_secondary}
+                                onChange={(e) => setFormData({ ...formData, brand_color_secondary: e.target.value })}
+                            />
+                        </div>
+                        <FormInput
+                            label="Screenshots"
+                            value={formData.screenshots}
+                            onChange={(e) => setFormData({ ...formData, screenshots: e.target.value })}
+                            helperText="Comma-separated URLs"
+                        />
+                    </CollapsibleSection>
+
+                    <CollapsibleSection title="Categorization">
                         <CategorySelect
                             label="Categories"
                             categories={categories}
-                            selectedIds={editingCategoryIds}
-                            onChange={setEditingCategoryIds}
+                            selectedIds={formData.categoryIds}
+                            onChange={(ids) => setFormData({ ...formData, categoryIds: ids })}
                             helperText="Select one or more categories"
                         />
-                    </form>
-                )}
+                        <ArrayInput
+                            label="Use Cases"
+                            value={formData.use_cases}
+                            onChange={(val) => setFormData({ ...formData, use_cases: val })}
+                        />
+                    </CollapsibleSection>
+
+                    <CollapsibleSection title="Admin Tools">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center">
+                                <input
+                                    id="verified"
+                                    type="checkbox"
+                                    checked={formData.verified}
+                                    onChange={(e) => setFormData({ ...formData, verified: e.target.checked })}
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                                />
+                                <label htmlFor="verified" className="ml-2 block text-sm text-gray-900">Verified Badge</label>
+                            </div>
+                            <div className="flex items-center">
+                                <input
+                                    id="featured"
+                                    type="checkbox"
+                                    checked={formData.featured}
+                                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                                />
+                                <label htmlFor="featured" className="ml-2 block text-sm text-gray-900">Featured Tool</label>
+                            </div>
+                            <div className="flex items-center">
+                                <input
+                                    id="trending"
+                                    type="checkbox"
+                                    checked={formData.trending}
+                                    onChange={(e) => setFormData({ ...formData, trending: e.target.checked })}
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                                />
+                                <label htmlFor="trending" className="ml-2 block text-sm text-gray-900">Trending</label>
+                            </div>
+                            <div className="flex items-center">
+                                <input
+                                    id="editors-choice"
+                                    type="checkbox"
+                                    checked={formData.editors_choice}
+                                    onChange={(e) => setFormData({ ...formData, editors_choice: e.target.checked })}
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                                />
+                                <label htmlFor="editors-choice" className="ml-2 block text-sm text-gray-900">Editor's Choice</label>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                </form>
             </Modal>
 
             {/* Delete Modal */}
@@ -432,99 +968,6 @@ export default function ToolsManagement() {
                 <p className="text-sm text-gray-500">
                     Are you sure you want to delete <strong>{deletingTool?.name}</strong>? This action cannot be undone.
                 </p>
-            </Modal>
-
-            {/* Create Tool Modal */}
-            <Modal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                title="Create New Tool"
-                size="xl"
-                footer={
-                    <>
-                        <button
-                            type="button"
-                            onClick={() => setIsCreateModalOpen(false)}
-                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            form="create-tool-form"
-                            className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:w-auto"
-                        >
-                            Create Tool
-                        </button>
-                    </>
-                }
-            >
-                <form id="create-tool-form" onSubmit={handleCreateTool} className="space-y-4">
-                    <FormInput
-                        label="Name"
-                        value={newTool.name}
-                        onChange={(e) => setNewTool({ ...newTool, name: e.target.value })}
-                        required
-                    />
-                    <FormInput
-                        label="Slug"
-                        value={newTool.slug}
-                        onChange={(e) => setNewTool({ ...newTool, slug: e.target.value })}
-                        helperText="Leave empty to auto-generate from name"
-                    />
-                    <FormInput
-                        label="Website"
-                        type="url"
-                        value={newTool.website}
-                        onChange={(e) => setNewTool({ ...newTool, website: e.target.value })}
-                        required
-                    />
-                    <FormInput
-                        label="Description"
-                        textarea
-                        rows={4}
-                        value={newTool.description}
-                        onChange={(e) => setNewTool({ ...newTool, description: e.target.value })}
-                        required
-                    />
-                    <FormInput
-                        label="Pricing"
-                        value={newTool.pricing}
-                        onChange={(e) => setNewTool({ ...newTool, pricing: e.target.value })}
-                        helperText="e.g., Free, Freemium, Paid, $19/mo"
-                    />
-                    <FormInput
-                        label="Platforms"
-                        value={newTool.platforms}
-                        onChange={(e) => setNewTool({ ...newTool, platforms: e.target.value })}
-                        helperText="Comma-separated, e.g., Web, iOS, Android"
-                    />
-                    <FormInput
-                        label="Models Used"
-                        value={newTool.models_used}
-                        onChange={(e) => setNewTool({ ...newTool, models_used: e.target.value })}
-                        helperText="Comma-separated, e.g., GPT-4, Claude, Gemini"
-                    />
-                    <FormInput
-                        label="Logo URL"
-                        type="url"
-                        value={newTool.logo_url}
-                        onChange={(e) => setNewTool({ ...newTool, logo_url: e.target.value })}
-                    />
-                    <CategorySelect
-                        label="Categories"
-                        categories={categories}
-                        selectedIds={newTool.categoryIds}
-                        onChange={(ids) => setNewTool({ ...newTool, categoryIds: ids })}
-                        helperText="Select one or more categories"
-                    />
-                    <FormInput
-                        label="Screenshots"
-                        value={newTool.screenshots}
-                        onChange={(e) => setNewTool({ ...newTool, screenshots: e.target.value })}
-                        helperText="Comma-separated URLs"
-                    />
-                </form>
             </Modal>
         </AdminLayout>
     );

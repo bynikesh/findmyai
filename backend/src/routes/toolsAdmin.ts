@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import prisma from '../lib/prisma';
+import * as toolController from '../controllers/toolController';
 import { requireAdmin } from '../middleware/admin';
 
 export default async function (app: FastifyInstance) {
@@ -19,46 +19,48 @@ export default async function (app: FastifyInstance) {
                 body: z.object({
                     name: z.string().optional(),
                     slug: z.string().optional(),
+                    tagline: z.string().optional(),
+                    short_description: z.string().optional(),
                     description: z.string().optional(),
                     website: z.string().url().optional(),
-                    pricing: z.string().optional().nullable(),
-                    platforms: z.array(z.string()).optional(),
-                    models_used: z.array(z.string()).optional(),
-                    logo_url: z.string().optional().nullable(),
-                    screenshots: z.array(z.string()).optional(),
+                    key_features: z.array(z.string()).optional(),
+                    pros: z.array(z.string()).optional(),
+                    cons: z.array(z.string()).optional(),
+                    ideal_for: z.string().optional(),
+                    pricing_type: z.string().optional(),
+                    pricing: z.string().optional(),
+                    price_range: z.string().optional(),
+                    free_trial: z.boolean().optional(),
+                    open_source: z.boolean().optional(),
+                    repo_url: z.string().optional(),
+                    platforms: z.string().optional(),
+                    models_used: z.string().optional(),
+                    primary_model: z.string().optional(),
+                    integrations: z.array(z.string()).optional(),
+                    api_available: z.boolean().optional(),
+                    api_docs_url: z.string().optional(),
+                    logo_url: z.string().optional(),
+                    brand_color_primary: z.string().optional(),
+                    brand_color_secondary: z.string().optional(),
+                    screenshots: z.string().optional(),
+                    release_year: z.coerce.number().optional(),
+                    company_name: z.string().optional(),
+                    company_size: z.string().optional(),
+                    seo_title: z.string().optional(),
+                    seo_meta_description: z.string().optional(),
+                    social_share_image: z.string().optional(),
+                    use_cases: z.array(z.string()).optional(),
+                    allow_reviews: z.boolean().optional(),
                     verified: z.boolean().optional(),
+                    featured: z.boolean().optional(),
+                    trending: z.boolean().optional(),
+                    editors_choice: z.boolean().optional(),
+                    still_active: z.boolean().optional(),
                     categoryIds: z.array(z.number()).optional(),
                 }),
             },
         },
-        async (request, reply) => {
-            const { id } = request.params;
-            const body = request.body as any;
-            const { categoryIds, ...toolData } = body;
-
-            try {
-                const tool = await prisma.tool.update({
-                    where: { id: parseInt(id) },
-                    data: {
-                        ...toolData,
-                        categories: categoryIds ? {
-                            set: categoryIds.map((id: number) => ({ id }))
-                        } : undefined,
-                    },
-                    include: {
-                        categories: true,
-                        tags: true,
-                    },
-                });
-
-                return tool;
-            } catch (error: any) {
-                console.error('Error updating tool:', error);
-                return reply.status(500).send({
-                    error: error.message || 'Failed to update tool',
-                });
-            }
-        }
+        toolController.updateTool as any,
     );
 
     // DELETE /api/admin/tools/:id - Delete tool
@@ -72,21 +74,37 @@ export default async function (app: FastifyInstance) {
                 }),
             },
         },
-        async (request, reply) => {
-            const { id } = request.params;
+        toolController.deleteTool as any,
+    );
 
-            try {
-                await prisma.tool.delete({
-                    where: { id: parseInt(id) },
-                });
+    // POST /api/admin/tools/fetch-metadata - Auto-fetch metadata
+    fastify.post(
+        '/admin/tools/fetch-metadata',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                body: z.object({
+                    url: z.string().url(),
+                }),
+            },
+        },
+        toolController.fetchMetadata as any,
+    );
 
-                return { message: 'Tool deleted successfully' };
-            } catch (error: any) {
-                console.error('Error deleting tool:', error);
-                return reply.status(500).send({
-                    error: error.message || 'Failed to delete tool',
-                });
-            }
-        }
+    // POST /api/admin/tools/generate-description - Generate description with AI
+    fastify.post(
+        '/admin/tools/generate-description',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                body: z.object({
+                    name: z.string(),
+                    website: z.string().url(),
+                    tagline: z.string().optional(),
+                    features: z.array(z.string()).optional(),
+                }),
+            },
+        },
+        toolController.generateDescription as any,
     );
 }

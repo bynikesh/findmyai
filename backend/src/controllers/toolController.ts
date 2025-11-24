@@ -118,19 +118,150 @@ export const createTool = async (
     const body = request.body as any;
     const { categoryIds, ...toolData } = body;
 
+    // Helper to split string to array
+    const splitToArray = (val: any) => {
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+        return [];
+    };
+
+    const dataToSave = {
+        ...toolData,
+        platforms: splitToArray(toolData.platforms),
+        models_used: splitToArray(toolData.models_used),
+        screenshots: splitToArray(toolData.screenshots),
+        categories: categoryIds?.length > 0 ? {
+            connect: categoryIds.map((id: number) => ({ id }))
+        } : undefined,
+    };
+
     const tool = await prisma.tool.create({
-        data: {
-            ...toolData,
-            categories: categoryIds?.length > 0 ? {
-                connect: categoryIds.map((id: number) => ({ id }))
-            } : undefined,
-        },
+        data: dataToSave,
         include: {
             categories: true,
             tags: true,
         },
     });
     return tool;
+};
+
+export const updateTool = async (
+    request: FastifyRequest<{ Params: { id: string }; Body: any }>,
+    reply: FastifyReply,
+) => {
+    const { id } = request.params;
+    const body = request.body as any;
+    const { categoryIds, ...toolData } = body;
+
+    // Helper to split string to array
+    const splitToArray = (val: any) => {
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+        return undefined; // Return undefined if not provided to avoid overwriting with empty array
+    };
+
+    try {
+        const dataToUpdate: any = {
+            ...toolData,
+            categories: categoryIds ? {
+                set: categoryIds.map((catId: number) => ({ id: catId }))
+            } : undefined,
+        };
+
+        if (toolData.platforms !== undefined) dataToUpdate.platforms = splitToArray(toolData.platforms) || [];
+        if (toolData.models_used !== undefined) dataToUpdate.models_used = splitToArray(toolData.models_used) || [];
+        if (toolData.screenshots !== undefined) dataToUpdate.screenshots = splitToArray(toolData.screenshots) || [];
+
+        const tool = await prisma.tool.update({
+            where: { id: parseInt(id) },
+            data: dataToUpdate,
+            include: {
+                categories: true,
+                tags: true,
+            },
+        });
+        return tool;
+    } catch (error) {
+        console.error('Error updating tool:', error);
+        return reply.status(500).send({ message: 'Failed to update tool' });
+    }
+};
+
+export const deleteTool = async (
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+) => {
+    const { id } = request.params;
+
+    try {
+        await prisma.tool.delete({
+            where: { id: parseInt(id) },
+        });
+        return { message: 'Tool deleted successfully' };
+    } catch (error) {
+        return reply.status(500).send({ message: 'Failed to delete tool', error });
+    }
+};
+
+import * as cheerio from 'cheerio';
+
+export const fetchMetadata = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { url } = request.body as { url: string };
+    try {
+        const response = await fetch(url);
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        const title = $('meta[property="og:title"]').attr('content') || $('title').text() || '';
+        const description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || '';
+        const image = $('meta[property="og:image"]').attr('content') || '';
+        const icon = $('link[rel="icon"]').attr('href') || $('link[rel="shortcut icon"]').attr('href') || '';
+
+        const resolveUrl = (rel: string) => {
+            try {
+                return new URL(rel, url).toString();
+            } catch {
+                return rel;
+            }
+        };
+
+        return reply.send({
+            title: title.trim(),
+            description: description.trim(),
+            image: image ? resolveUrl(image) : '',
+            icon: icon ? resolveUrl(icon) : '',
+        });
+    } catch (error) {
+        return reply.status(500).send({ message: 'Failed to fetch metadata', error });
+    }
+};
+
+import { generateToolDescription } from '../lib/claude';
+
+export const generateDescription = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { name, website, tagline, features } = request.body as {
+        name: string;
+        website: string;
+        tagline?: string;
+        features?: string[];
+    };
+
+    try {
+        const descriptionData = await generateToolDescription({
+            name,
+            website,
+            tagline,
+            features,
+        });
+
+        return reply.send(descriptionData);
+    } catch (error: any) {
+        console.error('Error generating description:', error);
+        return reply.status(500).send({
+            message: 'Failed to generate description',
+            error: error.message,
+        });
+    }
 };
 
 export const createReview = async (
