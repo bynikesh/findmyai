@@ -1,7 +1,7 @@
 # -------------------------------
 #  Build stage – compile frontend + backend
 # -------------------------------
-FROM node:20-alpine AS builder
+FROM node:20-bullseye AS builder
 
 WORKDIR /app
 
@@ -31,7 +31,7 @@ RUN npm run build   # produces ./dist
 # -------------------------------
 #  Runtime stage – serve backend + static frontend
 # -------------------------------
-FROM node:20-alpine AS runtime
+FROM node:20-bullseye AS runtime
 
 WORKDIR /app
 
