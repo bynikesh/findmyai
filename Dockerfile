@@ -38,8 +38,8 @@ WORKDIR /app
 # Copy backend package files
 COPY backend/package*.json ./backend/
 
-# Install only production backend dependencies
-RUN cd backend && npm install --omit=dev
+# Copy backend node_modules from builder (production dependencies)
+COPY --from=builder /app/backend/node_modules ./backend/node_modules
 
 # Copy built assets from builder
 COPY --from=builder /app/frontend/dist ./frontend/dist
