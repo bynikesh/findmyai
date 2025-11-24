@@ -144,14 +144,14 @@ export default async function (app: FastifyInstance) {
                 });
 
                 if (tools.length !== toolIds.length) {
-                    const foundIds = tools.map(t => t.id);
+                    const foundIds = tools.map((t: any) => t.id);
                     const missing = toolIds.filter(id => !foundIds.includes(id));
                     return reply.status(404).send({
                         error: `Tools not found: ${missing.join(', ')}`,
                     });
                 }
 
-                const sortedTools = toolIds.map(id => tools.find(t => t.id === id)!);
+                const sortedTools = toolIds.map(id => tools.find((t: any) => t.id === id)!);
 
                 const result = await generateToolComparison(
                     { toolIds, focus },

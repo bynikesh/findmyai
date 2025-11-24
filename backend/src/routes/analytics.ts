@@ -126,7 +126,7 @@ export default async function (app: FastifyInstance) {
                 });
 
                 // Fetch tool details
-                const toolIds = viewCounts.map((v) => v.toolId);
+                const toolIds = viewCounts.map((v: any) => v.toolId);
                 const tools = await prisma.tool.findMany({
                     where: { id: { in: toolIds } },
                     select: {
@@ -141,7 +141,7 @@ export default async function (app: FastifyInstance) {
 
                 // Combine data
                 const results = viewCounts.map((vc) => {
-                    const tool = tools.find((t) => t.id === vc.toolId);
+                    const tool = tools.find((t: any) => t.id === vc.toolId);
                     return {
                         ...tool,
                         viewCount: vc._count.id,
@@ -210,7 +210,7 @@ export default async function (app: FastifyInstance) {
                     ORDER BY date ASC
                 `;
 
-                return signups.map((s) => ({
+                return signups.map((s: any) => ({
                     date: s.date,
                     count: Number(s.count),
                 }));

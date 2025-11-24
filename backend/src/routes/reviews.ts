@@ -235,7 +235,7 @@ async function updateToolRating(toolId: number) {
     const reviewCount = reviews.length;
     const averageRating =
         reviewCount > 0
-            ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+            ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
             : 0;
 
     await prisma.tool.update({
