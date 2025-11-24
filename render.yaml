@@ -23,12 +23,6 @@ services:
       # Optional AI features
       - key: ANTHROPIC_API_KEY
         sync: false
-      # Optional caching
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: findmyai-redis
-          property: connectionString
       # Optional uploads
       - key: S3_REGION
         sync: false
