@@ -1,0 +1,19 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm install"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/health"
+healthcheckTimeout = 200
+restartPolicyType = "ON_FAILURE"
+
+[service]
+ports = [
+  { port = 3000, protocol = "http" }
+]
+
+[variables]
+# Add API keys here
+# DATABASE_URL=""
+# JWT_SECRET=""
