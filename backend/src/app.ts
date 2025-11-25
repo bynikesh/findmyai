@@ -25,14 +25,14 @@ export const buildApp = () => {
         timeWindow: '15 minutes',
     });
 
-    // Serve the built frontend from the root path
-    app.register(fastifyStatic, {
-        root: path.join(__dirname, '../../frontend/dist'),
-        prefix: '/', // optional, default '/' – serve at root
+    // Health check (Priority 1)
+    app.get('/health', async (request, reply) => {
+        return { status: 'ok' };
     });
 
     app.register(authPlugin);
 
+    // API Routes (Priority 2)
     app.register(toolRoutes, { prefix: '/api' });
     app.register(authRoutes, { prefix: '/api' });
     app.register(import('./routes/ai'), { prefix: '/api' });
@@ -44,8 +44,20 @@ export const buildApp = () => {
     app.register(import('./routes/analytics'), { prefix: '/api' });
     app.register(import('./routes/ai-seo'), { prefix: '/api' });
 
-    app.get('/health', async (request, reply) => {
-        return { status: 'ok' };
+    // Static Files (Priority 3)
+    app.register(fastifyStatic, {
+        root: path.join(__dirname, '../../frontend/dist'),
+        prefix: '/',
+        wildcard: false, // Don't use wildcard matching to avoid shadowing API
+    });
+
+    // SPA Catch-all (Priority 4) - Serve index.html for any non-API routes
+    app.setNotFoundHandler((request, reply) => {
+        if (request.raw.url?.startsWith('/api')) {
+            reply.status(404).send({ error: 'Not Found' });
+        } else {
+            reply.sendFile('index.html');
+        }
     });
 
     return app;
