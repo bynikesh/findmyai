@@ -17,11 +17,11 @@ COPY frontend/package*.json ./frontend/
 # Install all dependencies (root + workspaces)
 RUN npm install
 
-# Generate Prisma client
-RUN npx prisma generate --schema=./backend/prisma/schema.prisma
-
 # Copy source code
 COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate --schema=./backend/prisma/schema.prisma
 
 # Build frontend (Vite)
 WORKDIR /app/frontend
