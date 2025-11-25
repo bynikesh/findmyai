@@ -14,8 +14,8 @@ COPY backend/package*.json ./backend/
 # Copy frontend package files
 COPY frontend/package*.json ./frontend/
 
-# Install all dependencies (root + workspaces)
-RUN npm install
+# Install all dependencies (root + workspaces), skip install scripts
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY . .
