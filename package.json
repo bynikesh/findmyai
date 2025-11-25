@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
         "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
-        "start": "vite preview --port 8080",
+        "start": "node backend/dist/index.js",
         "test": "npm test --workspaces",
         "test:e2e": "npm run test:e2e --workspace=frontend",
         "test:e2e:headed": "npm run test:e2e:headed --workspace=frontend",
