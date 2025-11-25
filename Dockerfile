@@ -1,5 +1,6 @@
 # -------------------------------
 #  Build stage – compile frontend + backend
+#  Updated: 2025-11-25 - Ensure DATABASE_URL is set
 # -------------------------------
 FROM node:20-bullseye AS builder
 
