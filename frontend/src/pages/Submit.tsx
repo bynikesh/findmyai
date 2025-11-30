@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { trackSubmission } from '../lib/analytics'
 
 export default function Submit() {
     const [formData, setFormData] = useState({
@@ -17,6 +18,10 @@ export default function Submit() {
                 body: JSON.stringify(formData)
             })
             if (res.ok) {
+                const data = await res.json()
+                if (data && data.id) {
+                    trackSubmission(data.id)
+                }
                 alert('Submission received!')
                 setFormData({ name: '', website: '', description: '', pricing: 'Free' })
             } else {

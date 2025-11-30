@@ -108,6 +108,11 @@ model Tool {
   tags         Tag[]
   reviews      Review[]
   views        View[]
+  
+  // New Analytics Relations
+  toolViews       ToolView[]
+  externalClicks  ExternalClick[]
+  trendingSnapshots TrendingTool[]
 
   @@index([slug])
   @@index([trending_score])
@@ -126,6 +131,10 @@ model Category {
   seo_h1          String?
   seo_content     String?
   tools           Tool[]
+  
+  // New Analytics Relations
+  categoryViews     CategoryView[]
+  trendingSnapshots TrendingCategory[]
 
   @@index([slug])
   @@index([featured])
@@ -160,6 +169,9 @@ model Submission {
 
   userId         Int?
   user           User?            @relation(fields: [userId], references: [id])
+  
+  // New Analytics Relations
+  submissionEvents SubmissionEvent[]
 }
 
 model View {
@@ -170,4 +182,70 @@ model View {
 
   toolId    Int
   tool      Tool     @relation(fields: [toolId], references: [id])
+}
+
+// ---------------------------------------------------------------
+// Analytics models
+// ---------------------------------------------------------------
+
+model ToolView {
+  id        Int      @id @default(autoincrement())
+  toolId    Int
+  createdAt DateTime @default(now())
+  ipHash    String?  @db.VarChar(64)
+
+  tool      Tool     @relation(fields: [toolId], references: [id])
+
+  @@index([toolId, createdAt])
+}
+
+model ExternalClick {
+  id        Int      @id @default(autoincrement())
+  toolId    Int
+  createdAt DateTime @default(now())
+  source    String?  @db.VarChar(64)
+
+  tool      Tool     @relation(fields: [toolId], references: [id])
+
+  @@index([toolId, createdAt])
+}
+
+model CategoryView {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+  createdAt   DateTime @default(now())
+
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId, createdAt])
+}
+
+model SubmissionEvent {
+  id          Int      @id @default(autoincrement())
+  submissionId Int
+  createdAt   DateTime @default(now())
+
+  submission  Submission @relation(fields: [submissionId], references: [id])
+}
+
+model TrendingTool {
+  id          Int      @id @default(autoincrement())
+  toolId      Int
+  score       Float
+  snapshotAt  DateTime @default(now())
+
+  tool        Tool     @relation(fields: [toolId], references: [id])
+
+  @@unique([toolId, snapshotAt])
+}
+
+model TrendingCategory {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+  score       Float
+  snapshotAt  DateTime @default(now())
+
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([categoryId, snapshotAt])
 }

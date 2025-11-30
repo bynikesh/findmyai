@@ -6,6 +6,7 @@ export const getTools = async (
     request: FastifyRequest<{
         Querystring: {
             query?: string;
+            search?: string;
             category?: string;
             tags?: string;
             pricing?: string;
@@ -18,7 +19,7 @@ export const getTools = async (
     }>,
     reply: FastifyReply,
 ) => {
-    const { query, category, tags, pricing, platform, model, sort, page = '1', perPage = '10' } = request.query;
+    const { query, search, category, tags, pricing, platform, model, sort, page = '1', perPage = '10' } = request.query;
 
     const take = parseInt(perPage);
     const skip = (parseInt(page) - 1) * take;
@@ -27,10 +28,13 @@ export const getTools = async (
         verified: true,
     };
 
-    if (query) {
+    const searchQuery = search || query;
+
+    if (searchQuery) {
         where.OR = [
-            { name: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
+            { name: { contains: searchQuery, mode: 'insensitive' } },
+            { description: { contains: searchQuery, mode: 'insensitive' } },
+            { tags: { some: { name: { contains: searchQuery, mode: 'insensitive' } } } },
         ];
     }
 
@@ -44,7 +48,8 @@ export const getTools = async (
     }
 
     if (pricing) {
-        where.pricing = pricing;
+        // Case-insensitive check for pricing type
+        where.pricing_type = { equals: pricing, mode: 'insensitive' };
     }
 
     if (platform) {
@@ -57,8 +62,7 @@ export const getTools = async (
 
     const orderBy: any = {};
     if (sort === 'popular') {
-        // Assuming popular means most views or reviews, for now let's use views count if we had it, or just id
-        orderBy.id = 'desc';
+        orderBy.trending_score = 'desc';
     } else {
         orderBy.createdAt = 'desc';
     }
@@ -86,6 +90,41 @@ export const getTools = async (
             totalPages: Math.ceil(total / take),
         },
     };
+};
+
+export const getTrendingTools = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+) => {
+    try {
+        const trendingTools = await prisma.tool.findMany({
+            where: { is_trending: true },
+            orderBy: { trending_score: 'desc' },
+            take: 5, // Limit to 5 as requested
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                description: true,
+                logo_url: true,
+                average_rating: true,
+                review_count: true,
+                trending_score: true,
+                categories: {
+                    select: {
+                        name: true,
+                        slug: true
+                    },
+                    take: 1
+                }
+            },
+        });
+
+        return trendingTools;
+    } catch (error) {
+        console.error('Error fetching trending tools:', error);
+        return reply.status(500).send({ message: 'Failed to fetch trending tools' });
+    }
 };
 
 export const getToolBySlug = async (

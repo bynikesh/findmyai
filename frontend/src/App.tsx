@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
+import CategoryList from './pages/CategoryList'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import Home from './pages/Home'
@@ -26,6 +27,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/tools" element={<ToolList />} />
+                    <Route path="/categories" element={<CategoryList />} />
                     <Route path="/tools/:slug" element={<ToolDetail />} />
                     <Route path="/submit" element={<Submit />} />
                     <Route path="/login" element={<Login />} />

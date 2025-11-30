@@ -12,6 +12,7 @@ export default async function (app: FastifyInstance) {
             schema: {
                 querystring: z.object({
                     query: z.string().optional(),
+                    search: z.string().optional(),
                     category: z.string().optional(),
                     tags: z.string().optional(),
                     pricing: z.string().optional(),
@@ -25,6 +26,8 @@ export default async function (app: FastifyInstance) {
         },
         toolController.getTools,
     );
+
+    fastify.get('/tools/trending', toolController.getTrendingTools);
 
     fastify.get(
         '/tools/:slug',

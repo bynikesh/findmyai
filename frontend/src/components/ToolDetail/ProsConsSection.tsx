@@ -1,49 +1,54 @@
-import React from 'react';
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/20/solid';
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 
 interface ProsConsSectionProps {
     pros: string[];
     cons: string[];
 }
 
-const ProsConsSection: React.FC<ProsConsSectionProps> = ({ pros, cons }) => {
+export default function ProsConsSection({ pros, cons }: ProsConsSectionProps) {
+    if (!pros.length && !cons.length) return null;
+
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div className="grid gap-8 md:grid-cols-2">
+        <div className="bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Pros & Cons</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Pros */}
-                <div className="rounded-lg border border-green-100 bg-green-50 p-6">
-                    <h3 className="flex items-center text-lg font-semibold text-green-900">
-                        <CheckCircleIcon className="mr-2 h-5 w-5 text-green-600" />
-                        Pros
-                    </h3>
-                    <ul className="mt-4 space-y-3">
-                        {pros.map((pro, idx) => (
-                            <li key={idx} className="flex items-start text-green-800">
-                                <span className="mr-2">•</span>
-                                {pro}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                {pros.length > 0 && (
+                    <div>
+                        <h3 className="flex items-center gap-2 text-lg font-semibold text-green-700 mb-4">
+                            <CheckCircleIcon className="h-6 w-6" />
+                            Pros
+                        </h3>
+                        <ul className="space-y-3">
+                            {pros.map((pro, index) => (
+                                <li key={index} className="flex items-start gap-2">
+                                    <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                                    <span className="text-gray-700">{pro}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
 
                 {/* Cons */}
-                <div className="rounded-lg border border-red-100 bg-red-50 p-6">
-                    <h3 className="flex items-center text-lg font-semibold text-red-900">
-                        <XCircleIcon className="mr-2 h-5 w-5 text-red-600" />
-                        Cons
-                    </h3>
-                    <ul className="mt-4 space-y-3">
-                        {cons.map((con, idx) => (
-                            <li key={idx} className="flex items-start text-red-800">
-                                <span className="mr-2">•</span>
-                                {con}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                {cons.length > 0 && (
+                    <div>
+                        <h3 className="flex items-center gap-2 text-lg font-semibold text-red-700 mb-4">
+                            <XCircleIcon className="h-6 w-6" />
+                            Cons
+                        </h3>
+                        <ul className="space-y-3">
+                            {cons.map((con, index) => (
+                                <li key={index} className="flex items-start gap-2">
+                                    <XCircleIcon className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                    <span className="text-gray-700">{con}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
         </div>
     );
-};
-
-export default ProsConsSection;
+}

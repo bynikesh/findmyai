@@ -184,7 +184,6 @@ export default function AnalyticsDashboard() {
                                                     New Signups
                                                 </dt>
                                                 <dd className="text-2xl font-semibold text-green-900">
-                                                    {overview.last7Days.newSignups}
                                                 </dd>
                                             </dl>
                                         </div>
