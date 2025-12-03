@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiUrl } from '../lib/constants';
 
 export interface ToolDetailData {
     // Basic Info
@@ -82,7 +83,7 @@ export const useToolDetail = (slug: string | undefined) => {
         const fetchTool = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`http://localhost:3000/api/tools/${slug}`);
+                const res = await fetch(`${apiUrl}/api/tools/${slug}`);
                 if (!res.ok) {
                     if (res.status === 404) throw new Error('Tool not found');
                     throw new Error('Failed to fetch tool data');

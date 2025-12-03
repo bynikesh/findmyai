@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { trackSubmission } from '../lib/analytics'
 import { useToast } from '../contexts/ToastContext'
 import { validateForm, commonRules, hasErrors, ValidationErrors } from '../utils/validation'
+import { apiUrl } from '../lib/constants';
 
 export default function Submit() {
     const { showSuccess, showError } = useToast()
@@ -35,7 +36,7 @@ export default function Submit() {
         setIsSubmitting(true)
 
         try {
-            const res = await fetch('/api/submissions', {
+            const res = await fetch(`${apiUrl}/api/submissions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

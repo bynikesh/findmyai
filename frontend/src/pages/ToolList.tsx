@@ -3,6 +3,7 @@ import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
 import ToolCard from '../components/ToolCard'
 import { useSearchParams } from 'react-router-dom'
 import { trackCategoryView } from '../lib/analytics'
+import { apiUrl } from '../lib/constants';
 
 interface Tool {
     id: number
@@ -48,7 +49,6 @@ export default function ToolList() {
 
     // Fetch categories (used for filter dropdown)
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         fetch(`${apiUrl}/api/categories`)
             .then(res => (res.ok ? res.json() : []))
             .then(data => setCategories(data || []))
@@ -62,7 +62,6 @@ export default function ToolList() {
             setCategoryInfo(null);
             return;
         }
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         // Backend does not have a single-category endpoint, so fetch all and find the match
         fetch(`${apiUrl}/api/categories`)
             .then(res => (res.ok ? res.json() : []))
@@ -82,7 +81,6 @@ export default function ToolList() {
         const fetchTools = async () => {
             setLoading(true)
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
                 const params = new URLSearchParams()
 
                 if (searchQuery) params.set('search', searchQuery)

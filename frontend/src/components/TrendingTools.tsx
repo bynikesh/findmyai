@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { StarIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/solid';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
+import { apiUrl } from '../lib/constants';
 
 interface Category {
     name: string;
@@ -29,7 +30,6 @@ export default function TrendingTools() {
     useEffect(() => {
         const fetchTrendingTools = async () => {
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
                 const response = await axios.get(`${apiUrl}/api/tools/trending`);
 
                 if (Array.isArray(response.data)) {

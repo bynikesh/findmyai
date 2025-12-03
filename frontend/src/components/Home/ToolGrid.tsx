@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ToolCard, { Tool } from './ToolCard';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { apiUrl } from '../../lib/constants';
 
 export default function ToolGrid() {
     const [tools, setTools] = useState<Tool[]>([]);
@@ -10,7 +11,7 @@ export default function ToolGrid() {
 
     const fetchTools = async (pageNum: number) => {
         try {
-            const res = await fetch(`/api/tools?page=${pageNum}&perPage=12&sort=popular`);
+            const res = await fetch(`${apiUrl}/api/tools?page=${pageNum}&perPage=12&sort=popular`);
             if (!res.ok) throw new Error('Failed to fetch tools');
             const json = await res.json();
             const mapped = json.data.map((t: any) => ({

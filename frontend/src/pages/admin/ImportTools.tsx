@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/Admin/AdminLayout';
 import { useToast } from '../../contexts/ToastContext';
+import { apiUrl } from '../../lib/constants';
 
 interface ImportLog {
     id: number;
@@ -41,7 +42,7 @@ export default function ImportTools() {
     const fetchLogs = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/import/logs?limit=20', {
+            const res = await fetch(`${apiUrl}/api/import/logs?limit=20`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
@@ -56,7 +57,7 @@ export default function ImportTools() {
     const fetchTotalTools = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/analytics/overview', {
+            const res = await fetch(`${apiUrl}/api/analytics/overview`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
@@ -72,7 +73,7 @@ export default function ImportTools() {
     const fetchPendingTools = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/admin/tools?status=pending&perPage=50', {
+            const res = await fetch(`${apiUrl}/api/admin/tools?status=pending&perPage=50`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
@@ -88,7 +89,7 @@ export default function ImportTools() {
         setStopping(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/import/stop', {
+            const res = await fetch(`${apiUrl}/api/import/stop`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -109,7 +110,7 @@ export default function ImportTools() {
         if (!confirm('Are you sure you want to approve this tool?')) return;
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/admin/tools/${id}`, {
+            const res = await fetch(`${apiUrl}/api/admin/tools/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -134,7 +135,7 @@ export default function ImportTools() {
         if (!confirm('Are you sure you want to delete this tool?')) return;
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/admin/tools/${id}`, {
+            const res = await fetch(`${apiUrl}/api/admin/tools/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -155,8 +156,8 @@ export default function ImportTools() {
         try {
             const token = localStorage.getItem('token');
             const endpoint = source === 'all'
-                ? '/api/import/run'
-                : `/api/import/run/${source}`;
+                ? `${apiUrl}/api/import/run`
+                : `${apiUrl}/api/import/run/${source}`;
 
             const res = await fetch(endpoint, {
                 method: 'POST',

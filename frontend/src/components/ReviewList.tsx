@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StarIcon } from '@heroicons/react/24/solid';
+import { apiUrl } from '../lib/constants';
 
 interface Review {
     id: number;
@@ -27,7 +28,7 @@ export default function ReviewList({ toolId }: ReviewListProps) {
         const fetchReviews = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/tools/${toolId}/reviews?page=${page}&perPage=5`);
+                const res = await fetch(`${apiUrl}/api/tools/${toolId}/reviews?page=${page}&perPage=5`);
                 if (!res.ok) throw new Error('Failed to fetch reviews');
 
                 const data = await res.json();

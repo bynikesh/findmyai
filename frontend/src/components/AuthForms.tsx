@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
 import { validateForm, commonRules, hasErrors, ValidationErrors, ValidationRule } from '../utils/validation'
+import { apiUrl } from '../lib/constants';
 
 export default function AuthForms({ type }: { type: 'login' | 'register' }) {
     const navigate = useNavigate()
@@ -40,7 +41,7 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
         setErrors({})
         setIsSubmitting(true)
 
-        const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/register'
+        const endpoint = type === 'login' ? `${apiUrl}/api/auth/login` : `${apiUrl}/api/auth/register`
         const body = type === 'login' ? { email, password } : { email, password, name }
 
         try {

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import Loader from '../../components/Loader';
 import AdminLayout from '../../components/Admin/AdminLayout';
+import { apiUrl } from '../../lib/constants';
 
 interface Submission {
     id: number;
@@ -26,7 +27,7 @@ export default function SubmissionReview() {
         const fetchSubmission = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/admin/submissions/${id}`, {
+                const res = await fetch(`${apiUrl}/api/admin/submissions/${id}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
@@ -52,7 +53,7 @@ export default function SubmissionReview() {
 
         setActionLoading(true);
         try {
-            const res = await fetch(`/api/admin/submissions/${id}/approve`, {
+            const res = await fetch(`${apiUrl}/api/admin/submissions/${id}/approve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,7 +81,7 @@ export default function SubmissionReview() {
 
         setActionLoading(true);
         try {
-            const res = await fetch(`/api/admin/submissions/${id}/reject`, {
+            const res = await fetch(`${apiUrl}/api/admin/submissions/${id}/reject`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

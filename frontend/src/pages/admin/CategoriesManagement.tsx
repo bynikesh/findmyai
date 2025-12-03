@@ -4,6 +4,7 @@ import AdminLayout from '../../components/Admin/AdminLayout';
 import DataTable from '../../components/Admin/DataTable';
 import Modal from '../../components/Admin/Modal';
 import FormInput from '../../components/Admin/FormInput';
+import { apiUrl } from '../../lib/constants';
 
 interface Category {
     id: number;
@@ -43,7 +44,7 @@ export default function CategoriesManagement() {
     const fetchCategories = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3000/api/categories');
+            const res = await fetch(`${apiUrl}/api/categories`);
             const data = await res.json();
             setCategories(data || []);
         } catch (error) {
@@ -67,7 +68,7 @@ export default function CategoriesManagement() {
         if (!deletingCategory) return;
 
         try {
-            const res = await fetch(`http://localhost:3000/api/admin/categories/${deletingCategory.id}`, {
+            const res = await fetch(`${apiUrl}/api/admin/categories/${deletingCategory.id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -92,7 +93,7 @@ export default function CategoriesManagement() {
         if (!editingCategory) return;
 
         try {
-            const res = await fetch(`http://localhost:3000/api/admin/categories/${editingCategory.id}`, {
+            const res = await fetch(`${apiUrl}/api/admin/categories/${editingCategory.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ export default function CategoriesManagement() {
         const slug = newCategory.slug || newCategory.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
         try {
-            const res = await fetch('http://localhost:3000/api/admin/categories', {
+            const res = await fetch(`${apiUrl}/api/admin/categories`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

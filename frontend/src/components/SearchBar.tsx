@@ -2,6 +2,7 @@ import { Fragment, useState, useEffect } from 'react'
 import { Combobox, Transition } from '@headlessui/react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { useNavigate } from 'react-router-dom'
+import { apiUrl } from '../lib/constants';
 
 interface Tool {
     id: number
@@ -22,7 +23,7 @@ export default function SearchBar() {
                 return
             }
             try {
-                const res = await fetch(`/api/tools?query=${query}&perPage=5`)
+                const res = await fetch(`${apiUrl}/api/tools?query=${query}&perPage=5`)
                 if (!res.ok) throw new Error('Failed to search tools')
                 const data = await res.json()
                 setTools(data.data || [])

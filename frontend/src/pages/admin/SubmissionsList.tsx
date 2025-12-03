@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Loader from '../../components/Loader';
 import AdminLayout from '../../components/Admin/AdminLayout';
+import { apiUrl } from '../../lib/constants';
 
 interface Submission {
     id: number;
@@ -27,7 +28,7 @@ export default function SubmissionsList() {
             setError(null);
             try {
                 const query = filter !== 'ALL' ? `?status=${filter}` : '';
-                const res = await fetch(`/api/admin/submissions${query}`, {
+                const res = await fetch(`${apiUrl}/api/admin/submissions${query}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },

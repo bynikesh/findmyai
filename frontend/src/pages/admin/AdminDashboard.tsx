@@ -7,6 +7,7 @@ import {
     ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/Admin/AdminLayout';
+import { apiUrl } from '../../lib/constants';
 
 interface Stats {
     totalTools: number;
@@ -29,8 +30,8 @@ export default function AdminDashboard() {
             try {
                 // Fetch basic stats from API
                 const [toolsRes, submissionsRes] = await Promise.all([
-                    fetch('http://localhost:3000/api/tools'),
-                    fetch('http://localhost:3000/api/admin/submissions', {
+                    fetch(`${apiUrl}/api/tools?perPage=1`), // Fetch 1 tool to get total count
+                    fetch(`${apiUrl}/api/admin/submissions`, {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem('token')}`,
                         },

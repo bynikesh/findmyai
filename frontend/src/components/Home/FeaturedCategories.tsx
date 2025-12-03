@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FolderIcon } from '@heroicons/react/24/outline';
+import { apiUrl } from '../../../lib/constants';
 
 interface FeaturedCategory {
     id: number;
@@ -21,7 +22,7 @@ export default function FeaturedCategories() {
 
     const fetchFeaturedCategories = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/categories/featured');
+            const res = await fetch(`${apiUrl}/api/categories/featured`);
             const data = await res.json();
             setCategories(data || []);
         } catch (error) {

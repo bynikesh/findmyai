@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchFilters } from '../hooks/useSearchFilters';
+import { apiUrl } from '../lib/constants';
 
 interface Category {
     id: number;
@@ -12,7 +13,6 @@ export default function HorizontalFilters() {
     const [categories, setCategories] = useState<Category[]>([]);
 
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         fetch(`${apiUrl}/api/categories`)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch categories');

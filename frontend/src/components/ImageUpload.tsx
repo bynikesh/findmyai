@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { apiUrl } from '../../lib/constants';
 
 interface ImageUploadProps {
     onUploadComplete?: (fileUrl: string) => void;
@@ -50,7 +51,7 @@ export default function ImageUpload({ onUploadComplete, maxSizeMB = 5 }: ImageUp
             // Step 1: Get signed upload URL from backend
             setProgress(10);
             const token = localStorage.getItem('token');
-            const signRes = await fetch('/api/uploads/sign', {
+            const signRes = await fetch(`${apiUrl}/api/uploads/sign`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

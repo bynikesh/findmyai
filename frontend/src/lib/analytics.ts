@@ -1,11 +1,11 @@
 // ---------------------------------------------------------------
 // analytics.ts – tiny wrapper around fetch for analytics events
 // ---------------------------------------------------------------
-const API_URL = import.meta.env.VITE_API_URL || '';
+import { apiUrl } from './constants';
 
 async function post(endpoint: string, body?: any) {
     try {
-        await fetch(`${API_URL}${endpoint}`, {
+        await fetch(`${apiUrl}${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: body ? JSON.stringify(body) : undefined,

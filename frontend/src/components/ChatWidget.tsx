@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { PaperAirplaneIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
+import { apiUrl } from '../lib/constants';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -40,7 +41,7 @@ export default function ChatWidget() {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/ai/chat', {
+            const response = await fetch(`${apiUrl}/api/ai/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

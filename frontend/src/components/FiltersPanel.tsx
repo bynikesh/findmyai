@@ -3,6 +3,7 @@ import { Dialog, Disclosure, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { MinusIcon, PlusIcon } from '@heroicons/react/20/solid'
 import { useSearchFilters } from '../hooks/useSearchFilters'
+import { apiUrl } from '../lib/constants';
 
 interface Category {
     id: number
@@ -15,7 +16,7 @@ export default function FiltersPanel({ mobileFiltersOpen, setMobileFiltersOpen }
     const [categories, setCategories] = useState<Category[]>([])
 
     useEffect(() => {
-        fetch('/api/categories')
+        fetch(`${apiUrl}/api/categories`)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch categories')
                 return res.json()

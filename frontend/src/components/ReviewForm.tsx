@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../contexts/ToastContext';
+import { apiUrl } from '../lib/constants';
 
 interface ReviewFormProps {
     toolId: number;
@@ -34,7 +35,7 @@ export default function ReviewForm({ toolId, onSuccess }: ReviewFormProps) {
                 return;
             }
 
-            const res = await fetch(`/api/tools/${toolId}/reviews`, {
+            const res = await fetch(`${apiUrl}/api/tools/${toolId}/reviews`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

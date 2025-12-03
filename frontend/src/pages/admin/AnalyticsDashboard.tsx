@@ -7,6 +7,7 @@ import {
     FireIcon,
 } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/Admin/AdminLayout';
+import { apiUrl } from '../../lib/constants';
 
 interface AnalyticsOverview {
     totals: {
@@ -42,7 +43,7 @@ export default function AnalyticsDashboard() {
 
             try {
                 const [overviewRes] = await Promise.all([
-                    fetch('/api/analytics/overview', {
+                    fetch(`${apiUrl}/api/analytics/overview`, {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                 ]);
@@ -50,7 +51,7 @@ export default function AnalyticsDashboard() {
                 const overviewData = await overviewRes.json();
                 setOverview(overviewData);
 
-                const adminTopToolsRes = await fetch('/api/admin/analytics/top-tools', {
+                const adminTopToolsRes = await fetch(`${apiUrl}/api/admin/analytics/top-tools`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const adminTopToolsData = await adminTopToolsRes.json();

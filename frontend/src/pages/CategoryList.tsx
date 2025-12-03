@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackCategoryView } from '../lib/analytics';
+import { apiUrl } from '../lib/constants';
 
 interface Category {
     id: number;
@@ -17,7 +18,6 @@ export default function CategoryList() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         fetch(`${apiUrl}/api/categories`)
             .then(res => (res.ok ? res.json() : []))
             .then(data => {

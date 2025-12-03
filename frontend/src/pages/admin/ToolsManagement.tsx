@@ -8,6 +8,7 @@ import CategorySelect from '../../components/Admin/CategorySelect';
 import CollapsibleSection from '../../components/Admin/CollapsibleSection';
 import ArrayInput from '../../components/Admin/ArrayInput';
 import { useToast } from '../../contexts/ToastContext';
+import { apiUrl } from '../../lib/constants';
 
 interface Tool {
     id: number;
@@ -291,7 +292,7 @@ export default function ToolsManagement() {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/admin/tools?perPage=100&status=${statusFilter}`, {
+            const res = await fetch(`${apiUrl}/api/admin/tools?perPage=100&status=${statusFilter}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
@@ -305,7 +306,7 @@ export default function ToolsManagement() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch('/api/categories'); // Removed hardcoded localhost
+            const res = await fetch(`${apiUrl}/api/categories`); // Removed hardcoded localhost
             const data = await res.json();
             setCategories(data || []);
         } catch (error) {
@@ -328,7 +329,7 @@ export default function ToolsManagement() {
         if (!deletingTool) return;
 
         try {
-            const res = await fetch(`/api/admin/tools/${deletingTool.id}`, {
+            const res = await fetch(`${apiUrl}/api/admin/tools/${deletingTool.id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -355,7 +356,7 @@ export default function ToolsManagement() {
 
         setIsFetchingMetadata(true);
         try {
-            const res = await fetch('/api/admin/tools/fetch-metadata', {
+            const res = await fetch(`${apiUrl}/api/admin/tools/fetch-metadata`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -397,7 +398,7 @@ export default function ToolsManagement() {
 
         setIsGeneratingDescription(true);
         try {
-            const res = await fetch('/api/admin/tools/generate-description', {
+            const res = await fetch(`${apiUrl}/api/admin/tools/generate-description`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -455,7 +456,7 @@ export default function ToolsManagement() {
         setErrors({});
 
         const isEditing = editingToolId !== null;
-        const url = isEditing ? `/api/admin/tools/${editingToolId}` : '/api/tools';
+        const url = isEditing ? `${apiUrl}/api/admin/tools/${editingToolId}` : `${apiUrl}/api/tools`;
         const method = isEditing ? 'PUT' : 'POST';
 
         try {
@@ -504,7 +505,7 @@ export default function ToolsManagement() {
 
     const handleApprove = async (tool: Tool) => {
         try {
-            const res = await fetch(`/api/admin/tools/${tool.id}`, {
+            const res = await fetch(`${apiUrl}/api/admin/tools/${tool.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
