@@ -41,11 +41,8 @@ export default function AnalyticsDashboard() {
             const token = localStorage.getItem('token');
 
             try {
-                const [overviewRes, topToolsRes] = await Promise.all([
+                const [overviewRes] = await Promise.all([
                     fetch('/api/analytics/overview', {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }),
-                    fetch('/api/analytics/top-tools?limit=10&days=7', {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                 ]);
