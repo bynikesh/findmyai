@@ -39,8 +39,8 @@ export async function getTopTools(
     const viewData = await prisma.toolView.groupBy({
         by: ['toolId'],
         where,
-        _count: { _all: true },
-        orderBy: { _count: { _all: 'desc' } },
+        _count: { toolId: true },
+        orderBy: { _count: { toolId: 'desc' } },
         take: Number(limit),
     });
     const enriched = await Promise.all(
@@ -54,7 +54,7 @@ export async function getTopTools(
                 name: tool?.name ?? '',
                 slug: tool?.slug ?? '',
                 category: tool?.categories?.[0]?.name ?? '',
-                views: d._count._all,
+                views: d._count.toolId,
             };
         }),
     );
@@ -81,8 +81,8 @@ export async function getTopCategories(
     const catData = await prisma.categoryView.groupBy({
         by: ['categoryId'],
         where,
-        _count: { _all: true },
-        orderBy: { _count: { _all: 'desc' } },
+        _count: { categoryId: true },
+        orderBy: { _count: { categoryId: 'desc' } },
         take: Number(limit),
     });
     const enriched = await Promise.all(
@@ -95,7 +95,7 @@ export async function getTopCategories(
                 categoryId: d.categoryId,
                 name: cat?.name ?? '',
                 slug: cat?.slug ?? '',
-                views: d._count._all,
+                views: d._count.categoryId,
             };
         }),
     );
@@ -122,8 +122,8 @@ export async function getExternalClicks(
     const clickData = await prisma.externalClick.groupBy({
         by: ['toolId'],
         where,
-        _count: { _all: true },
-        orderBy: { _count: { _all: 'desc' } },
+        _count: { toolId: true },
+        orderBy: { _count: { toolId: 'desc' } },
         take: Number(limit),
     });
     const enriched = await Promise.all(
@@ -136,7 +136,7 @@ export async function getExternalClicks(
                 toolId: d.toolId,
                 name: tool?.name ?? '',
                 slug: tool?.slug ?? '',
-                clicks: d._count._all,
+                clicks: d._count.toolId,
             };
         }),
     );
