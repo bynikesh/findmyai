@@ -53,12 +53,12 @@ export default function AnalyticsDashboard() {
                 const overviewData = await overviewRes.json();
                 setOverview(overviewData);
 
-                const topToolsRes = await fetch('/api/admin/analytics/top-tools');
-                const topToolsData = await topToolsRes.json();
-                setTopTools(topToolsData.data || []); // Access data.data
+                const adminTopToolsRes = await fetch('/api/admin/analytics/top-tools', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const adminTopToolsData = await adminTopToolsRes.json();
+                setTopTools(adminTopToolsData.data || []);
 
-                const topCategoriesRes = await fetch('/api/admin/analytics/categories');
-                const topCategoriesData = await topCategoriesRes.json();
             } catch (error) {
                 console.error('Failed to fetch analytics:', error);
             } finally {
