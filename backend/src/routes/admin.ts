@@ -23,8 +23,9 @@ export default async function (app: FastifyInstance) {
         async (request, reply) => {
             const { status, page = '1', perPage = '20' } = request.query;
 
+            const pageNum = Math.max(1, parseInt(page));
             const take = parseInt(perPage);
-            const skip = (parseInt(page) - 1) * take;
+            const skip = (pageNum - 1) * take;
 
             const where: any = {};
             if (status) {
@@ -55,7 +56,7 @@ export default async function (app: FastifyInstance) {
                     data: submissions,
                     meta: {
                         total,
-                        page: parseInt(page),
+                        page: pageNum,
                         perPage: take,
                         totalPages: Math.ceil(total / take),
                     },

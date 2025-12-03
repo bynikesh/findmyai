@@ -21,8 +21,9 @@ export const getTools = async (
 ) => {
     const { query, search, category, tags, pricing, platform, model, sort, page = '1', perPage = '10' } = request.query;
 
+    const pageNum = Math.max(1, parseInt(page));
     const take = parseInt(perPage);
-    const skip = (parseInt(page) - 1) * take;
+    const skip = (pageNum - 1) * take;
 
     const where: any = {
         verified: true,
@@ -85,7 +86,7 @@ export const getTools = async (
         data: tools,
         meta: {
             total,
-            page: parseInt(page),
+            page: pageNum,
             perPage: take,
             totalPages: Math.ceil(total / take),
         },

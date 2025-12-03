@@ -24,8 +24,9 @@ export default async function (app: FastifyInstance) {
             const { id } = request.params;
             const { page = '1', perPage = '10' } = request.query;
 
+            const pageNum = Math.max(1, parseInt(page));
             const take = parseInt(perPage);
-            const skip = (parseInt(page) - 1) * take;
+            const skip = (pageNum - 1) * take;
 
             try {
                 const [reviews, total] = await Promise.all([
@@ -53,7 +54,7 @@ export default async function (app: FastifyInstance) {
                     data: reviews,
                     meta: {
                         total,
-                        page: parseInt(page),
+                        page: pageNum,
                         perPage: take,
                         totalPages: Math.ceil(total / take),
                     },
