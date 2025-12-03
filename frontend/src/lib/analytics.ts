@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------
 // analytics.ts – tiny wrapper around fetch for analytics events
 // ---------------------------------------------------------------
-import { apiUrl } from './constants';
+import { apiUrl } from 'lib/constants';
 
 async function post(endpoint: string, body?: any) {
     try {

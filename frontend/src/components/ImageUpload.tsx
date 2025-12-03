@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { apiUrl } from '../../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface ImageUploadProps {
     onUploadComplete?: (fileUrl: string) => void;

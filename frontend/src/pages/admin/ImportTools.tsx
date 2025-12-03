@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/Admin/AdminLayout';
 import { useToast } from '../../contexts/ToastContext';
-import { apiUrl } from '../../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface ImportLog {
     id: number;

@@ -3,7 +3,7 @@ import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
 import ToolCard from '../components/ToolCard'
 import { useSearchParams } from 'react-router-dom'
 import { trackCategoryView } from '../lib/analytics'
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface Tool {
     id: number

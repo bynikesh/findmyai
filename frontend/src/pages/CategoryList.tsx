@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackCategoryView } from '../lib/analytics';
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface Category {
     id: number;

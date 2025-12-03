@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import ToolCard, { Tool } from './ToolCard';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
-import { apiUrl } from '../../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 export default function ToolGrid() {
     const [tools, setTools] = useState<Tool[]>([]);

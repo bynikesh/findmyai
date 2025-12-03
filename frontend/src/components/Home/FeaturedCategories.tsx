@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FolderIcon } from '@heroicons/react/24/outline';
-import { apiUrl } from '../../../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface FeaturedCategory {
     id: number;

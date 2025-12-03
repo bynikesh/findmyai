@@ -3,7 +3,7 @@ import { Dialog, Disclosure, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { MinusIcon, PlusIcon } from '@heroicons/react/20/solid'
 import { useSearchFilters } from '../hooks/useSearchFilters'
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface Category {
     id: number

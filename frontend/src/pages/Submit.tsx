@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { trackSubmission } from '../lib/analytics'
 import { useToast } from '../contexts/ToastContext'
 import { validateForm, commonRules, hasErrors, ValidationErrors } from '../utils/validation'
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 export default function Submit() {
     const { showSuccess, showError } = useToast()

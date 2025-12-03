@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { PaperAirplaneIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface Message {
     role: 'user' | 'assistant';

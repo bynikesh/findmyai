@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
 import { validateForm, commonRules, hasErrors, ValidationErrors, ValidationRule } from '../utils/validation'
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 export default function AuthForms({ type }: { type: 'login' | 'register' }) {
     const navigate = useNavigate()

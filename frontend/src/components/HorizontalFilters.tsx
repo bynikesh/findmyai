@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchFilters } from '../hooks/useSearchFilters';
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface Category {
     id: number;

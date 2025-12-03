@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 export interface ToolDetailData {
     // Basic Info

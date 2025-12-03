@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { StarIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/solid';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface Category {
     name: string;

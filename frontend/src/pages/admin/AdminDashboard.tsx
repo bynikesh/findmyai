@@ -7,7 +7,7 @@ import {
     ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/Admin/AdminLayout';
-import { apiUrl } from '../../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface Stats {
     totalTools: number;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StarIcon } from '@heroicons/react/24/solid';
-import { apiUrl } from '../lib/constants';
+import { apiUrl } from 'lib/constants';
 
 interface Review {
     id: number;
