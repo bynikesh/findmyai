@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HeartIcon, EyeIcon, BookmarkIcon } from '@heroicons/react/24/solid';
+import { HeartIcon, EyeIcon } from '@heroicons/react/24/solid';
 import { HeartIcon as HeartIconOutline, FolderIcon } from '@heroicons/react/24/outline';
 
 export interface Tool {

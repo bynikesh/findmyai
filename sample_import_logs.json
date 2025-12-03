@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "source": "huggingface",
+        "fetched": 50,
+        "imported": 48,
+        "skipped": 2,
+        "errors": null,
+        "timestamp": "2025-11-30T20:35:00.000Z"
+    },
+    {
+        "id": 2,
+        "source": "openrouter",
+        "fetched": 120,
+        "imported": 115,
+        "skipped": 5,
+        "errors": [
+            "Error importing model-xyz: Invalid data format"
+        ],
+        "timestamp": "2025-11-30T20:36:00.000Z"
+    }
+]

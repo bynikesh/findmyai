@@ -83,7 +83,7 @@ export default function SearchBar() {
                                             }
                                             value={tool}
                                         >
-                                            {({ selected, active }) => (
+                                            {({ selected }) => (
                                                 <>
                                                     <span
                                                         className={`block truncate ${selected ? 'font-medium' : 'font-normal'

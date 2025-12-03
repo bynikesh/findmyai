@@ -7,6 +7,24 @@ import { requireAdmin } from '../middleware/admin';
 export default async function (app: FastifyInstance) {
     const fastify = app.withTypeProvider<ZodTypeProvider>();
 
+    // GET /api/admin/tools - List all tools (admin)
+    fastify.get(
+        '/admin/tools',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                querystring: z.object({
+                    query: z.string().optional(),
+                    status: z.enum(['verified', 'pending', 'all']).optional(),
+                    page: z.string().optional(),
+                    perPage: z.string().optional(),
+                    sort: z.string().optional(),
+                }),
+            },
+        },
+        toolController.getAdminTools as any,
+    );
+
     // PUT /api/admin/tools/:id - Update tool
     fastify.put(
         '/admin/tools/:id',

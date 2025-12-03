@@ -7,6 +7,7 @@ import FormInput from '../../components/Admin/FormInput';
 import CategorySelect from '../../components/Admin/CategorySelect';
 import CollapsibleSection from '../../components/Admin/CollapsibleSection';
 import ArrayInput from '../../components/Admin/ArrayInput';
+import { useToast } from '../../contexts/ToastContext';
 
 interface Tool {
     id: number;
@@ -251,10 +252,12 @@ const mapToolToForm = (tool: Tool): NewToolForm => ({
 });
 
 export default function ToolsManagement() {
+    const { showSuccess, showError } = useToast();
     const [tools, setTools] = useState<Tool[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'verified' | 'pending'>('all');
 
     // Unified Form State
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -271,7 +274,7 @@ export default function ToolsManagement() {
                 .toLowerCase()
                 .trim()
                 .replace(/\s+/g, '-')
-                .replace(/[^a-z0-9\-]/g, '');
+                .replace(/[^a-z0-9-]/g, '');
             setFormData(prev => ({ ...prev, slug: generated }));
         }
     }, [formData.name]);
@@ -282,12 +285,15 @@ export default function ToolsManagement() {
     useEffect(() => {
         fetchTools();
         fetchCategories();
-    }, []);
+    }, [statusFilter]); // Re-fetch when status filter changes
 
     const fetchTools = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3000/api/tools?perPage=100');
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/admin/tools?perPage=100&status=${statusFilter}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             const data = await res.json();
             setTools(data.data || []);
         } catch (error) {
@@ -299,7 +305,7 @@ export default function ToolsManagement() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/categories');
+            const res = await fetch('/api/categories'); // Removed hardcoded localhost
             const data = await res.json();
             setCategories(data || []);
         } catch (error) {
@@ -371,11 +377,11 @@ export default function ToolsManagement() {
                 }));
             } else {
                 console.error('Failed to fetch metadata');
-                alert('Failed to fetch metadata');
+                showError('Failed to fetch metadata', 'Please check the URL and try again');
             }
         } catch (error) {
             console.error('Error fetching metadata:', error);
-            alert('Error fetching metadata');
+            showError('Error fetching metadata', 'Network error occurred');
         } finally {
             setIsFetchingMetadata(false);
         }
@@ -417,11 +423,11 @@ export default function ToolsManagement() {
                 }));
             } else {
                 console.error('Failed to generate description');
-                alert('Failed to generate description');
+                showError('Failed to generate description', 'Please try again');
             }
         } catch (error) {
             console.error('Error generating description:', error);
-            alert('Error generating description');
+            showError('Error generating description', 'Network error occurred');
         } finally {
             setIsGeneratingDescription(false);
         }
@@ -475,14 +481,18 @@ export default function ToolsManagement() {
                 setFormData(getInitialToolForm());
                 setEditingToolId(null);
                 setErrors({});
+                showSuccess(
+                    editingToolId ? 'Tool updated successfully' : 'Tool created successfully',
+                    editingToolId ? 'Changes have been saved' : 'New tool has been added'
+                );
             } else {
                 const errorData = await res.json();
                 console.error('Failed to save tool:', errorData);
-                alert(`Failed to save tool: ${errorData.message || 'Unknown error'}`);
+                showError('Failed to save tool', errorData.message || 'Please try again');
             }
         } catch (error) {
             console.error('Error saving tool:', error);
-            alert('An error occurred while saving the tool');
+            showError('Error saving tool', 'Please try again');
         }
     };
 
@@ -490,6 +500,30 @@ export default function ToolsManagement() {
         setFormData(getInitialToolForm());
         setEditingToolId(null);
         setIsFormOpen(true);
+    };
+
+    const handleApprove = async (tool: Tool) => {
+        try {
+            const res = await fetch(`/api/admin/tools/${tool.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify({ verified: true }),
+            });
+
+            if (res.ok) {
+                setTools(tools.map((t) => (t.id === tool.id ? { ...t, verified: true } : t)));
+                showSuccess('Tool approved', 'The tool is now visible to users');
+            } else {
+                console.error('Failed to approve tool');
+                showError('Failed to approve tool', 'Please try again');
+            }
+        } catch (error) {
+            console.error('Error approving tool:', error);
+            showError('Error approving tool', 'Please try again');
+        }
     };
 
     const filteredTools = tools.filter((tool) =>
@@ -557,15 +591,28 @@ export default function ToolsManagement() {
                     </div>
                 </div>
 
-                {/* Search */}
-                <div className="mt-6">
-                    <input
-                        type="text"
-                        placeholder="Search tools..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    />
+                {/* Filters */}
+                <div className="mt-6 flex gap-4">
+                    <div className="flex-1">
+                        <input
+                            type="text"
+                            placeholder="Search tools..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        />
+                    </div>
+                    <div className="w-48">
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value as any)}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="verified">Verified</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
                 </div>
 
                 {/* Table */}
@@ -580,6 +627,15 @@ export default function ToolsManagement() {
                                     emptyMessage="No tools found"
                                     actions={(tool) => (
                                         <div className="flex gap-2">
+                                            {!tool.verified && (
+                                                <button
+                                                    onClick={() => handleApprove(tool)}
+                                                    className="text-green-600 hover:text-green-900 font-medium text-xs border border-green-600 px-2 py-1 rounded"
+                                                    title="Approve"
+                                                >
+                                                    Approve
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => window.open(`/tools/${tool.slug}`, '_blank')}
                                                 className="text-blue-600 hover:text-blue-900"

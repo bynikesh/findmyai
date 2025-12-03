@@ -4,8 +4,7 @@ import {
     BuildingOfficeIcon,
     CalendarIcon,
     LinkIcon,
-    CheckCircleIcon,
-    DocumentTextIcon
+    CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 interface QuickInfoSidebarProps {

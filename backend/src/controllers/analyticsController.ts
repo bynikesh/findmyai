@@ -20,6 +20,39 @@ function parseRange(req: FastifyRequest<{ Querystring: { start?: string; end?: s
 }
 
 /** ---------------------------------------------------------------
+ * 0️⃣ Analytics Overview (platform totals + last 7 days)
+ * --------------------------------------------------------------- */
+export async function getAnalyticsOverview(
+    req: FastifyRequest,
+    reply: FastifyReply,
+) {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const [totalTools, totalUsers, totalReviews, totalViews, last7DaysViews, last7DaysSignups] = await Promise.all([
+        prisma.tool.count(),
+        prisma.user.count(),
+        prisma.review.count(),
+        prisma.toolView.count(),
+        prisma.toolView.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+        prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    ]);
+
+    return reply.send({
+        totals: {
+            tools: totalTools,
+            users: totalUsers,
+            reviews: totalReviews,
+            views: totalViews,
+        },
+        last7Days: {
+            newSignups: last7DaysSignups,
+            views: last7DaysViews,
+        },
+    });
+}
+
+/** ---------------------------------------------------------------
  * 1️⃣ Top Tools (by views)
  * --------------------------------------------------------------- */
 export async function getTopTools(
@@ -40,9 +73,9 @@ export async function getTopTools(
         by: ['toolId'],
         where,
         _count: { _all: true },
-        orderBy: { _count: { _all: 'desc' } },
+        orderBy: { _count: { _all: 'desc' } } as any,
         take: Number(limit),
-    });
+    } as any);
     const enriched = await Promise.all(
         viewData.map(async d => {
             const tool = await prisma.tool.findUnique({
@@ -54,7 +87,7 @@ export async function getTopTools(
                 name: tool?.name ?? '',
                 slug: tool?.slug ?? '',
                 category: tool?.categories?.[0]?.name ?? '',
-                views: d._count._all,
+                views: (d._count as any)._all,
             };
         }),
     );
@@ -82,9 +115,9 @@ export async function getTopCategories(
         by: ['categoryId'],
         where,
         _count: { _all: true },
-        orderBy: { _count: { _all: 'desc' } },
+        orderBy: { _count: { _all: 'desc' } } as any,
         take: Number(limit),
-    });
+    } as any);
     const enriched = await Promise.all(
         catData.map(async d => {
             const cat = await prisma.category.findUnique({
@@ -95,7 +128,7 @@ export async function getTopCategories(
                 categoryId: d.categoryId,
                 name: cat?.name ?? '',
                 slug: cat?.slug ?? '',
-                views: d._count._all,
+                views: (d._count as any)._all,
             };
         }),
     );
@@ -123,9 +156,9 @@ export async function getExternalClicks(
         by: ['toolId'],
         where,
         _count: { _all: true },
-        orderBy: { _count: { _all: 'desc' } },
+        orderBy: { _count: { _all: 'desc' } } as any,
         take: Number(limit),
-    });
+    } as any);
     const enriched = await Promise.all(
         clickData.map(async d => {
             const tool = await prisma.tool.findUnique({
@@ -136,7 +169,7 @@ export async function getExternalClicks(
                 toolId: d.toolId,
                 name: tool?.name ?? '',
                 slug: tool?.slug ?? '',
-                clicks: d._count._all,
+                clicks: (d._count as any)._all,
             };
         }),
     );
@@ -161,7 +194,7 @@ export async function getDailyTrend(
     >`
     SELECT DATE("createdAt") AS "date", COUNT(*) AS "views"
     FROM "ToolView"
-    WHERE DATE("createdAt") >= ${iso}
+    WHERE DATE("createdAt") >= CAST(${iso} AS DATE)
     GROUP BY DATE("createdAt")
     ORDER BY "date" ASC
   `;
@@ -186,7 +219,7 @@ export async function getDailyClicks(
     >`
     SELECT DATE("createdAt") AS "date", COUNT(*) AS "clicks"
     FROM "ExternalClick"
-    WHERE DATE("createdAt") >= ${iso}
+    WHERE DATE("createdAt") >= CAST(${iso} AS DATE)
     GROUP BY DATE("createdAt")
     ORDER BY "date" ASC
   `;
@@ -211,7 +244,7 @@ export async function getSubmissionStats(
     >`
     SELECT DATE("createdAt") AS "date", COUNT(*) AS "count"
     FROM "Submission"
-    WHERE DATE("createdAt") >= ${iso}
+    WHERE DATE("createdAt") >= CAST(${iso} AS DATE)
     GROUP BY DATE("createdAt")
     ORDER BY "date" ASC
   `;

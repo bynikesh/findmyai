@@ -1,14 +1,45 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useToast } from '../contexts/ToastContext'
+import { validateForm, commonRules, hasErrors, ValidationErrors, ValidationRule } from '../utils/validation'
 
 export default function AuthForms({ type }: { type: 'login' | 'register' }) {
     const navigate = useNavigate()
+    const { showSuccess, showError } = useToast()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [name, setName] = useState('')
+    const [errors, setErrors] = useState<ValidationErrors>({})
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const validationRules: Record<string, ValidationRule> = type === 'login' ? {
+        email: commonRules.email(),
+        password: { required: 'Password is required' },
+    } : {
+        name: commonRules.name(2, 50),
+        email: commonRules.email(),
+        password: {
+            required: 'Password is required',
+            minLength: { value: 6, message: 'Password must be at least 6 characters' }
+        },
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Validate form
+        const formData = type === 'login' ? { email, password } : { email, password, name }
+        const validationErrors = validateForm(formData, validationRules)
+
+        if (hasErrors(validationErrors)) {
+            setErrors(validationErrors)
+            showError('Validation failed', 'Please fix the errors below')
+            return
+        }
+
+        setErrors({})
+        setIsSubmitting(true)
+
         const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/register'
         const body = type === 'login' ? { email, password } : { email, password, name }
 
@@ -19,6 +50,7 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
                 body: JSON.stringify(body),
             })
             const data = await res.json()
+
             if (res.ok) {
                 // Store token in localStorage
                 localStorage.setItem('token', data.token)
@@ -27,7 +59,11 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
                 const payload = JSON.parse(atob(data.token.split('.')[1]))
 
                 // Show success
-                alert(`Welcome ${payload.name || email}!`)
+                const userName = payload.name || name || email.split('@')[0]
+                showSuccess(
+                    `Welcome ${userName}!`,
+                    type === 'register' ? 'Your account has been created successfully' : 'You\'ve been logged in'
+                )
 
                 // Redirect based on role
                 if (payload.role === 'ADMIN') {
@@ -39,11 +75,27 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
                 // Trigger re-render of header
                 window.dispatchEvent(new Event('auth-change'))
             } else {
-                alert('Error: ' + data.message)
+                showError(
+                    type === 'login' ? 'Login failed' : 'Registration failed',
+                    data.message || 'Please check your credentials and try again'
+                )
             }
         } catch (error) {
             console.error(error)
-            alert('Login failed. Please try again.')
+            showError('Network error', 'Please check your connection and try again')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleFieldChange = (field: string, value: string) => {
+        if (field === 'email') setEmail(value)
+        else if (field === 'password') setPassword(value)
+        else if (field === 'name') setName(value)
+
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors({ ...errors, [field]: '' })
         }
     }
 
@@ -60,25 +112,28 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
                     {type === 'register' && (
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
-                                Name
+                                Name <span className="text-red-500">*</span>
                             </label>
                             <div className="mt-2">
                                 <input
                                     id="name"
                                     name="name"
                                     type="text"
-                                    required
                                     value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                                    onChange={(e) => handleFieldChange('name', e.target.value)}
+                                    className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 ${errors.name ? 'ring-red-300' : 'ring-gray-300'
+                                        }`}
                                 />
+                                {errors.name && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                                )}
                             </div>
                         </div>
                     )}
 
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-                            Email address
+                            Email address <span className="text-red-500">*</span>
                         </label>
                         <div className="mt-2">
                             <input
@@ -86,18 +141,21 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
                                 name="email"
                                 type="email"
                                 autoComplete="email"
-                                required
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                                onChange={(e) => handleFieldChange('email', e.target.value)}
+                                className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 ${errors.email ? 'ring-red-300' : 'ring-gray-300'
+                                    }`}
                             />
+                            {errors.email && (
+                                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                            )}
                         </div>
                     </div>
 
                     <div>
                         <div className="flex items-center justify-between">
                             <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
-                                Password
+                                Password <span className="text-red-500">*</span>
                             </label>
                         </div>
                         <div className="mt-2">
@@ -106,20 +164,27 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
                                 name="password"
                                 type="password"
                                 autoComplete="current-password"
-                                required
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                                onChange={(e) => handleFieldChange('password', e.target.value)}
+                                className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 ${errors.password ? 'ring-red-300' : 'ring-gray-300'
+                                    }`}
                             />
+                            {errors.password && (
+                                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                            )}
                         </div>
                     </div>
 
                     <div>
                         <button
                             type="submit"
-                            className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                            disabled={isSubmitting}
+                            className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {type === 'login' ? 'Sign in' : 'Register'}
+                            {isSubmitting ?
+                                (type === 'login' ? 'Signing in...' : 'Registering...') :
+                                (type === 'login' ? 'Sign in' : 'Register')
+                            }
                         </button>
                     </div>
                 </form>

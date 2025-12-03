@@ -6,6 +6,7 @@ import {
     UserGroupIcon,
     FireIcon,
 } from '@heroicons/react/24/outline';
+import AdminLayout from '../../components/Admin/AdminLayout';
 
 interface AnalyticsOverview {
     totals: {
@@ -21,12 +22,13 @@ interface AnalyticsOverview {
 }
 
 interface TopTool {
-    id: number;
+    toolId: number;
     name: string;
     slug: string;
-    viewCount: number;
+    category: string;
+    views: number;
     average_rating?: number;
-    review_count: number;
+    review_count?: number;
 }
 
 export default function AnalyticsDashboard() {
@@ -48,12 +50,15 @@ export default function AnalyticsDashboard() {
                     }),
                 ]);
 
-                if (overviewRes.ok) {
-                    setOverview(await overviewRes.json());
-                }
-                if (topToolsRes.ok) {
-                    setTopTools(await topToolsRes.json());
-                }
+                const overviewData = await overviewRes.json();
+                setOverview(overviewData);
+
+                const topToolsRes = await fetch('/api/admin/analytics/top-tools');
+                const topToolsData = await topToolsRes.json();
+                setTopTools(topToolsData.data || []); // Access data.data
+
+                const topCategoriesRes = await fetch('/api/admin/analytics/categories');
+                const topCategoriesData = await topCategoriesRes.json();
             } catch (error) {
                 console.error('Failed to fetch analytics:', error);
             } finally {
@@ -73,213 +78,212 @@ export default function AnalyticsDashboard() {
     }
 
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-                <p className="mt-2 text-sm text-gray-600">
-                    Platform metrics and performance insights
-                </p>
-            </div>
-
-            {/* Overview Stats */}
-            {overview && (
-                <>
-                    <div className="mb-8">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Platform Totals</h2>
-                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                            <div className="bg-white overflow-hidden shadow rounded-lg">
-                                <div className="p-5">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0">
-                                            <ChartBarIcon className="h-6 w-6 text-gray-400" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="text-sm font-medium text-gray-500 truncate">
-                                                    Total Tools
-                                                </dt>
-                                                <dd className="text-2xl font-semibold text-gray-900">
-                                                    {overview.totals.tools}
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white overflow-hidden shadow rounded-lg">
-                                <div className="p-5">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0">
-                                            <UserGroupIcon className="h-6 w-6 text-gray-400" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="text-sm font-medium text-gray-500 truncate">
-                                                    Total Users
-                                                </dt>
-                                                <dd className="text-2xl font-semibold text-gray-900">
-                                                    {overview.totals.users}
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white overflow-hidden shadow rounded-lg">
-                                <div className="p-5">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0">
-                                            <EyeIcon className="h-6 w-6 text-gray-400" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="text-sm font-medium text-gray-500 truncate">
-                                                    Total Views
-                                                </dt>
-                                                <dd className="text-2xl font-semibold text-gray-900">
-                                                    {overview.totals.views.toLocaleString()}
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white overflow-hidden shadow rounded-lg">
-                                <div className="p-5">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0">
-                                            <FireIcon className="h-6 w-6 text-gray-400" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="text-sm font-medium text-gray-500 truncate">
-                                                    Total Reviews
-                                                </dt>
-                                                <dd className="text-2xl font-semibold text-gray-900">
-                                                    {overview.totals.reviews}
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mb-8">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Last 7 Days</h2>
-                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                            <div className="bg-green-50 overflow-hidden shadow rounded-lg">
-                                <div className="p-5">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0">
-                                            <UserGroupIcon className="h-6 w-6 text-green-600" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="text-sm font-medium text-green-700 truncate">
-                                                    New Signups
-                                                </dt>
-                                                <dd className="text-2xl font-semibold text-green-900">
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-blue-50 overflow-hidden shadow rounded-lg">
-                                <div className="p-5">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0">
-                                            <EyeIcon className="h-6 w-6 text-blue-600" />
-                                        </div>
-                                        <div className="ml-5 w-0 flex-1">
-                                            <dl>
-                                                <dt className="text-sm font-medium text-blue-700 truncate">
-                                                    Page Views
-                                                </dt>
-                                                <dd className="text-2xl font-semibold text-blue-900">
-                                                    {overview.last7Days.views.toLocaleString()}
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {/* Top Tools */}
-            <div className="bg-white shadow rounded-lg">
-                <div className="border-b border-gray-200 px-6 py-4">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        Top Tools by Views (Last 7 Days)
-                    </h2>
+        <AdminLayout>
+            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Platform metrics and performance insights
+                    </p>
                 </div>
-                <div className="overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Rank
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Tool
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Views
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Rating
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Reviews
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {topTools.length === 0 ? (
+
+                {/* Overview Stats */}
+                {overview && (
+                    <>
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Platform Totals</h2>
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                                <div className="bg-white overflow-hidden shadow rounded-lg">
+                                    <div className="p-5">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <ChartBarIcon className="h-6 w-6 text-gray-400" />
+                                            </div>
+                                            <div className="ml-5 w-0 flex-1">
+                                                <dl>
+                                                    <dt className="text-sm font-medium text-gray-500 truncate">
+                                                        Total Tools
+                                                    </dt>
+                                                    <dd className="text-2xl font-semibold text-gray-900">
+                                                        {overview.totals.tools}
+                                                    </dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white overflow-hidden shadow rounded-lg">
+                                    <div className="p-5">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <UserGroupIcon className="h-6 w-6 text-gray-400" />
+                                            </div>
+                                            <div className="ml-5 w-0 flex-1">
+                                                <dl>
+                                                    <dt className="text-sm font-medium text-gray-500 truncate">
+                                                        Total Users
+                                                    </dt>
+                                                    <dd className="text-2xl font-semibold text-gray-900">
+                                                        {overview.totals.users}
+                                                    </dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white overflow-hidden shadow rounded-lg">
+                                    <div className="p-5">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <EyeIcon className="h-6 w-6 text-gray-400" />
+                                            </div>
+                                            <div className="ml-5 w-0 flex-1">
+                                                <dl>
+                                                    <dt className="text-sm font-medium text-gray-500 truncate">
+                                                        Total Views
+                                                    </dt>
+                                                    <dd className="text-2xl font-semibold text-gray-900">
+                                                        {overview.totals.views.toLocaleString()}
+                                                    </dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white overflow-hidden shadow rounded-lg">
+                                    <div className="p-5">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <FireIcon className="h-6 w-6 text-gray-400" />
+                                            </div>
+                                            <div className="ml-5 w-0 flex-1">
+                                                <dl>
+                                                    <dt className="text-sm font-medium text-gray-500 truncate">
+                                                        Total Reviews
+                                                    </dt>
+                                                    <dd className="text-2xl font-semibold text-gray-900">
+                                                        {overview.totals.reviews}
+                                                    </dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Last 7 Days</h2>
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                <div className="bg-green-50 overflow-hidden shadow rounded-lg">
+                                    <div className="p-5">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <UserGroupIcon className="h-6 w-6 text-green-600" />
+                                            </div>
+                                            <div className="ml-5 w-0 flex-1">
+                                                <dl>
+                                                    <dt className="text-sm font-medium text-green-700 truncate">
+                                                        New Signups
+                                                    </dt>
+                                                    <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                                                        {overview.last7Days.newSignups.toLocaleString()}
+                                                    </dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-blue-50 overflow-hidden shadow rounded-lg">
+                                    <div className="p-5">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <EyeIcon className="h-6 w-6 text-blue-600" />
+                                            </div>
+                                            <div className="ml-5 w-0 flex-1">
+                                                <dl>
+                                                    <dt className="text-sm font-medium text-blue-700 truncate">
+                                                        Page Views
+                                                    </dt>
+                                                    <dd className="text-2xl font-semibold text-blue-900">
+                                                        {overview.last7Days.views.toLocaleString()}
+                                                    </dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* Top Tools */}
+                <div className="bg-white shadow rounded-lg">
+                    <div className="border-b border-gray-200 px-6 py-4">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            Top Tools by Views (Last 7 Days)
+                        </h2>
+                    </div>
+                    <div className="overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                                        No data available
-                                    </td>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Rank
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Tool
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Views
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Rating
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Reviews
+                                    </th>
                                 </tr>
-                            ) : (
-                                topTools.map((tool, idx) => (
-                                    <tr key={tool.id}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {idx + 1}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <Link
-                                                to={`/tools/${tool.slug}`}
-                                                className="text-sm font-medium text-blue-600 hover:text-blue-800"
-                                            >
-                                                {tool.name}
-                                            </Link>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {tool.viewCount.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {tool.average_rating ? tool.average_rating.toFixed(1) : 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {tool.review_count}
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {topTools.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                                            No data available
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : (
+                                    topTools.map((tool, idx) => (
+                                        <tr key={tool.toolId}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                {idx + 1}
+                                            </td>
+                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{tool.name}</td>
+                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{tool.category}</td>
+                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{tool.views.toLocaleString()}</td>
+                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{tool.average_rating?.toFixed(1) ?? 'N/A'}</td>
+                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{tool.review_count?.toLocaleString() ?? 'N/A'}</td>
+                                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                                <Link
+                                                    to={`/tools/${tool.slug}`}
+                                                    className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                                                >
+                                                    View
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        </AdminLayout>
     );
 }

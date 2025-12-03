@@ -92,6 +92,69 @@ export const getTools = async (
     };
 };
 
+export const getAdminTools = async (
+    request: FastifyRequest<{
+        Querystring: {
+            query?: string;
+            status?: 'verified' | 'pending' | 'all';
+            page?: string;
+            perPage?: string;
+            sort?: string;
+        };
+    }>,
+    reply: FastifyReply,
+) => {
+    const { query, status = 'all', page = '1', perPage = '10', sort = 'newest' } = request.query;
+
+    const take = parseInt(perPage);
+    const skip = (parseInt(page) - 1) * take;
+
+    const where: any = {};
+
+    if (status === 'verified') {
+        where.verified = true;
+    } else if (status === 'pending') {
+        where.verified = false;
+    }
+
+    if (query) {
+        where.OR = [
+            { name: { contains: query, mode: 'insensitive' } },
+            { description: { contains: query, mode: 'insensitive' } },
+        ];
+    }
+
+    const orderBy: any = {};
+    if (sort === 'oldest') {
+        orderBy.createdAt = 'asc';
+    } else {
+        orderBy.createdAt = 'desc';
+    }
+
+    const [tools, total] = await Promise.all([
+        prisma.tool.findMany({
+            where,
+            take,
+            skip,
+            orderBy,
+            include: {
+                categories: true,
+            },
+        }),
+        prisma.tool.count({ where }),
+    ]);
+
+    return {
+        data: tools,
+        meta: {
+            total,
+            page: parseInt(page),
+            perPage: take,
+            totalPages: Math.ceil(total / take),
+        },
+    };
+};
+
 export const getTrendingTools = async (
     request: FastifyRequest,
     reply: FastifyReply,

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
+import { useToast } from '../contexts/ToastContext';
 
 interface ReviewFormProps {
     toolId: number;
@@ -8,28 +9,28 @@ interface ReviewFormProps {
 }
 
 export default function ReviewForm({ toolId, onSuccess }: ReviewFormProps) {
+    const { showSuccess, showError } = useToast();
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (rating === 0) {
-            setError('Please select a rating');
+            showError('Rating required', 'Please select a rating before submitting');
             return;
         }
 
         setLoading(true);
-        setError(null);
 
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                setError('Please log in to submit a review');
+                showError('Authentication required', 'Please log in to submit a review');
+                setLoading(false);
                 return;
             }
 
@@ -57,13 +58,13 @@ export default function ReviewForm({ toolId, onSuccess }: ReviewFormProps) {
             setTitle('');
             setBody('');
 
-            alert('Review submitted successfully!');
+            showSuccess('Review submitted!', 'Thank you for sharing your feedback');
 
             if (onSuccess) {
                 onSuccess();
             }
         } catch (err: any) {
-            setError(err.message);
+            showError('Failed to submit review', err.message || 'Please try again');
         } finally {
             setLoading(false);
         }
@@ -73,11 +74,6 @@ export default function ReviewForm({ toolId, onSuccess }: ReviewFormProps) {
         <div className="rounded-lg bg-white shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Write a Review</h3>
 
-            {error && (
-                <div className="mb-4 rounded-md bg-red-50 p-4">
-                    <p className="text-sm text-red-800">{error}</p>
-                </div>
-            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Rating */}

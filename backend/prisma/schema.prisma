@@ -96,6 +96,12 @@ model Tool {
   click_count  Int        @default(0)
   view_count   Int        @default(0)
   
+  // Auto-Import Tracking
+  source       String?    // huggingface, openrouter, rapidapi, manual
+  externalId   String?    // External API identifier
+  importLogId  Int?
+  importLog    ImportLog? @relation(fields: [importLogId], references: [id])
+  
   // Existing
   average_rating Float?    @default(0)
   review_count   Int       @default(0)
@@ -248,4 +254,21 @@ model TrendingCategory {
   category    Category @relation(fields: [categoryId], references: [id])
 
   @@unique([categoryId, snapshotAt])
+}
+
+// ---------------------------------------------------------------
+// Auto-Import Tracking
+// ---------------------------------------------------------------
+
+model ImportLog {
+  id          Int      @id @default(autoincrement())
+  source      String   // huggingface, openrouter, rapidapi, all
+  fetched     Int      @default(0)
+  imported    Int      @default(0)
+  skipped     Int      @default(0)
+  errors      Json? // Array of error strings
+  timestamp   DateTime @default(now())
+  tools       Tool[]
+
+  @@index([source, timestamp])
 }

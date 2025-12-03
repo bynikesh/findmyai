@@ -17,7 +17,8 @@ export default async function (app: FastifyInstance) {
     fastify.register(async (adminRoutes) => {
         adminRoutes.addHook('preHandler', requireAdmin);
 
-        adminRoutes.get('/analytics/tools', { schema: { querystring: z.object({ limit: z.string().optional(), start: z.string().optional(), end: z.string().optional(), days: z.string().optional() }) } }, ctrl.getTopTools);
+        adminRoutes.get('/analytics/overview', ctrl.getAnalyticsOverview);
+        adminRoutes.get('/analytics/top-tools', { schema: { querystring: z.object({ limit: z.string().optional(), start: z.string().optional(), end: z.string().optional(), days: z.string().optional() }) } }, ctrl.getTopTools);
         adminRoutes.get('/analytics/categories', { schema: { querystring: z.object({ limit: z.string().optional(), start: z.string().optional(), end: z.string().optional(), days: z.string().optional() }) } }, ctrl.getTopCategories);
         adminRoutes.get('/analytics/clicks', { schema: { querystring: z.object({ limit: z.string().optional(), start: z.string().optional(), end: z.string().optional(), days: z.string().optional() }) } }, ctrl.getExternalClicks);
 

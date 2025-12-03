@@ -7,7 +7,7 @@ import {
     FolderIcon,
     ChartBarIcon,
     Cog6ToothIcon,
-    SparklesIcon,
+    CloudArrowDownIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -22,7 +22,7 @@ const navigation: NavItem[] = [
     { name: 'Submissions', href: '/admin/submissions', icon: ClipboardDocumentCheckIcon },
     { name: 'Categories', href: '/admin/categories', icon: FolderIcon },
     { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
-    { name: 'AI Tools', href: '/admin/ai-tools', icon: SparklesIcon },
+    { name: 'Import Tools', href: '/admin/import-tools', icon: CloudArrowDownIcon },
     { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },
 ];
 
@@ -31,7 +31,7 @@ interface AdminSidebarProps {
     setMobileMenuOpen?: (open: boolean) => void;
 }
 
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen }) => {
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ setMobileMenuOpen }) => {
     const location = useLocation();
 
     const isActive = (href: string) => {

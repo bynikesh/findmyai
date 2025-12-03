@@ -24,7 +24,7 @@ export default function Header() {
                     setIsAuthenticated(true)
                     setIsAdmin(payload.role === 'ADMIN')
                     setUserName(payload.name || payload.email)
-                } catch (error) {
+                } catch {
                     setIsAuthenticated(false)
                 }
             } else {
