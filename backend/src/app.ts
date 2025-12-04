@@ -17,7 +17,10 @@ export const buildApp = () => {
     app.setSerializerCompiler(serializerCompiler);
 
     app.register(cors, {
-        origin: '*',
+        origin: ['https://findmyai.xyz', 'http://localhost:5173', 'https://findmyai-backend-production-afc4.up.railway.app'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
     });
 
     app.register(rateLimit, {
