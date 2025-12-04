@@ -17,7 +17,15 @@ export const buildApp = () => {
     app.setSerializerCompiler(serializerCompiler);
 
     app.register(cors, {
-        origin: true, // Reflect the request origin (allows credentials with any origin)
+        origin: (origin, cb) => {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) {
+                cb(null, true);
+                return;
+            }
+            // Reflect the request origin
+            cb(null, true);
+        },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
