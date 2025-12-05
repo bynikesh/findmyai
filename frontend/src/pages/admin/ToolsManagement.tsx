@@ -423,8 +423,9 @@ export default function ToolsManagement() {
                     use_cases: data.use_cases?.length ? data.use_cases : prev.use_cases,
                 }));
             } else {
-                console.error('Failed to generate description');
-                showError('Failed to generate description', 'Please try again');
+                const errorData = await res.json();
+                console.error('Failed to generate description:', errorData);
+                showError('Failed to generate description', errorData.error || errorData.message || 'Please try again');
             }
         } catch (error) {
             console.error('Error generating description:', error);
