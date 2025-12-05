@@ -128,7 +128,7 @@ export async function generateToolDescription(
     const client = getClaudeClient();
 
     if (!client) {
-        throw new Error('Claude AI is not configured');
+        throw new Error('Claude AI is not configured. Please set ANTHROPIC_API_KEY in your environment variables.');
     }
 
     const { name, website, tagline, features } = request;
