@@ -742,6 +742,13 @@ export default function ToolsManagement() {
                             </button>
                         </div>
                         <FormInput
+                            label="Source / Repository URL"
+                            type="url"
+                            value={formData.repo_url}
+                            onChange={(e) => setFormData({ ...formData, repo_url: e.target.value })}
+                            helperText="Link to GitHub, HuggingFace, etc."
+                        />
+                        <FormInput
                             label="Short Description"
                             textarea
                             rows={2}
@@ -854,13 +861,7 @@ export default function ToolsManagement() {
                                 <label htmlFor="open-source" className="ml-2 block text-sm text-gray-900">Open Source?</label>
                             </div>
                         </div>
-                        {formData.open_source && (
-                            <FormInput
-                                label="Repository URL"
-                                value={formData.repo_url}
-                                onChange={(e) => setFormData({ ...formData, repo_url: e.target.value })}
-                            />
-                        )}
+
                     </CollapsibleSection>
 
                     <CollapsibleSection title="Technical Info">
@@ -1026,6 +1027,6 @@ export default function ToolsManagement() {
                     Are you sure you want to delete <strong>{deletingTool?.name}</strong>? This action cannot be undone.
                 </p>
             </Modal>
-        </AdminLayout>
+        </AdminLayout >
     );
 }
