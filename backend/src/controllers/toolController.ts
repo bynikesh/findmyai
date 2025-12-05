@@ -306,58 +306,13 @@ export const deleteTool = async (
     }
 };
 
-import * as cheerio from 'cheerio';
+import { fetchUrlMetadata } from '../services/metadataService';
 
 export const fetchMetadata = async (request: FastifyRequest, reply: FastifyReply) => {
     const { url } = request.body as { url: string };
     try {
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            }
-        });
-        const html = await response.text();
-        const $ = cheerio.load(html);
-
-        const title = $('meta[property="og:title"]').attr('content') || $('title').text() || '';
-        const description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || '';
-        const image = $('meta[property="og:image"]').attr('content') || '';
-
-        // Enhanced icon fetching
-        let icon = $('link[rel="icon"]').attr('href') ||
-            $('link[rel="shortcut icon"]').attr('href') ||
-            $('link[rel="apple-touch-icon"]').attr('href') ||
-            $('link[rel="fluid-icon"]').attr('href') ||
-            '';
-
-        const resolveUrl = (rel: string) => {
-            try {
-                return new URL(rel, url).toString();
-            } catch {
-                return rel;
-            }
-        };
-
-        // Fallback to favicon.ico if no icon found
-        if (!icon) {
-            try {
-                const faviconUrl = new URL('/favicon.ico', url).toString();
-                const faviconRes = await fetch(faviconUrl, { method: 'HEAD' });
-                if (faviconRes.ok) {
-                    icon = faviconUrl;
-                }
-            } catch (e) {
-                // Ignore fallback error
-            }
-        }
-
-        return reply.send({
-            title: title.trim(),
-            description: description.trim(),
-            image: image ? resolveUrl(image) : '',
-            icon: icon ? resolveUrl(icon) : '',
-        });
+        const metadata = await fetchUrlMetadata(url);
+        return reply.send(metadata);
     } catch (error) {
         console.error('Metadata fetch error:', error);
         return reply.status(500).send({ message: 'Failed to fetch metadata', error });

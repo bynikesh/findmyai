@@ -5,6 +5,7 @@
 
 import prisma from '../lib/prisma';
 import Anthropic from '@anthropic-ai/sdk';
+import { fetchUrlMetadata } from './metadataService';
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -54,6 +55,7 @@ interface NormalizedTool {
     api_docs_url?: string;
     source: string;
     externalId: string;
+    website_url?: string;
 }
 
 interface ImportResult {
@@ -339,9 +341,28 @@ export async function enrichTool(tool: NormalizedTool): Promise<NormalizedTool> 
         console.log(`   ✨ Enriching ${tool.name} with AI...`);
         const metadata = await generateFullMetadata(tool.name, tool.description, tool.website);
 
+        // Use AI-found website if available and different
+        let finalWebsite = tool.website;
+        if (metadata.website_url && metadata.website_url.startsWith('http')) {
+            finalWebsite = metadata.website_url;
+        }
+
+        // Fetch logo if missing or default
+        let finalLogo = tool.logo_url;
+        if ((!finalLogo || finalLogo.includes('default')) && finalWebsite) {
+            try {
+                const meta = await fetchUrlMetadata(finalWebsite);
+                if (meta.icon) finalLogo = meta.icon;
+            } catch (e) {
+                // Ignore fetch errors
+            }
+        }
+
         return {
             ...tool,
             ...metadata,
+            website: finalWebsite,
+            logo_url: finalLogo,
             // Keep original values if AI returns empty/null and we have them
             description: metadata.description || tool.description,
             category: VALID_CATEGORIES.includes(metadata.category || '') ? metadata.category : 'Other',
@@ -384,6 +405,7 @@ Fields required:
 - free_trial: boolean.
 - open_source: boolean.
 - api_available: boolean.
+- website_url: The official website URL of the tool (NOT the huggingface/openrouter link). If unknown, leave empty.
 - platforms: Array of platforms (e.g., ["Web", "iOS", "Android", "Mac", "Windows", "Linux"]).
 
 If you are unsure about a specific field, make a reasonable inference based on the tool's nature or leave it as a generic default. Ensure the JSON is valid.
