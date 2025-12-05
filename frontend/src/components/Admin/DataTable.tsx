@@ -14,6 +14,8 @@ interface DataTableProps<T> {
     actions?: (item: T) => React.ReactNode;
     loading?: boolean;
     emptyMessage?: string;
+    selectedIds?: (number | string)[];
+    onSelectionChange?: (ids: (number | string)[]) => void;
 }
 
 function DataTable<T extends { id: number | string }>({
@@ -23,6 +25,8 @@ function DataTable<T extends { id: number | string }>({
     actions,
     loading,
     emptyMessage = 'No data available',
+    selectedIds,
+    onSelectionChange,
 }: DataTableProps<T>) {
     if (loading) {
         return (
@@ -40,11 +44,45 @@ function DataTable<T extends { id: number | string }>({
         );
     }
 
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            onSelectionChange?.(data.map((d) => d.id));
+        } else {
+            onSelectionChange?.([]);
+        }
+    };
+
+    const handleSelectRow = (id: number | string, e: React.ChangeEvent<HTMLInputElement>) => {
+        e.stopPropagation();
+        if (!selectedIds || !onSelectionChange) return;
+        if (selectedIds.includes(id)) {
+            onSelectionChange(selectedIds.filter((i) => i !== id));
+        } else {
+            onSelectionChange([...selectedIds, id]);
+        }
+    };
+
+    const allSelected = data.length > 0 && selectedIds?.length === data.length;
+    const someSelected = selectedIds && selectedIds.length > 0 && selectedIds.length < data.length;
+
     return (
         <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-300">
                 <thead className="bg-gray-50">
                     <tr>
+                        {onSelectionChange && (
+                            <th scope="col" className="relative px-7 sm:w-12 sm:px-6">
+                                <input
+                                    type="checkbox"
+                                    className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                    checked={allSelected}
+                                    ref={(input) => {
+                                        if (input) input.indeterminate = !!someSelected;
+                                    }}
+                                    onChange={handleSelectAll}
+                                />
+                            </th>
+                        )}
                         {columns.map((column) => (
                             <th
                                 key={column.key}
@@ -68,6 +106,17 @@ function DataTable<T extends { id: number | string }>({
                             onClick={() => onRowClick?.(item)}
                             className={onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''}
                         >
+                            {onSelectionChange && (
+                                <td className="relative px-7 sm:w-12 sm:px-6">
+                                    <input
+                                        type="checkbox"
+                                        className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                        checked={selectedIds?.includes(item.id)}
+                                        onChange={(e) => handleSelectRow(item.id, e)}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </td>
+                            )}
                             {columns.map((column) => (
                                 <td
                                     key={column.key}

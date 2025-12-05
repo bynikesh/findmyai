@@ -283,6 +283,12 @@ export default function ToolsManagement() {
     const [deletingTool, setDeletingTool] = useState<Tool | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+    // Bulk Actions State
+    const [selectedToolIds, setSelectedToolIds] = useState<number[]>([]);
+    const [isBulkCategoryModalOpen, setIsBulkCategoryModalOpen] = useState(false);
+    const [bulkCategoryIds, setBulkCategoryIds] = useState<number[]>([]);
+    const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+
     useEffect(() => {
         fetchTools();
         fetchCategories();
@@ -528,6 +534,67 @@ export default function ToolsManagement() {
         }
     };
 
+    const handleBulkDelete = async () => {
+        if (selectedToolIds.length === 0) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const deletePromises = selectedToolIds.map(id =>
+                fetch(`${apiUrl}/api/admin/tools/${id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+            );
+
+            await Promise.all(deletePromises);
+
+            setTools(tools.filter(t => !selectedToolIds.includes(t.id)));
+            setSelectedToolIds([]);
+            setIsBulkDeleteModalOpen(false);
+            showSuccess('Tools deleted', `${selectedToolIds.length} tools have been deleted`);
+        } catch (error) {
+            console.error('Error deleting tools:', error);
+            showError('Error deleting tools', 'Some tools may not have been deleted');
+        }
+    };
+
+    const handleBulkAddCategory = async () => {
+        if (selectedToolIds.length === 0 || bulkCategoryIds.length === 0) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const updatePromises = selectedToolIds.map(id => {
+                const tool = tools.find(t => t.id === id);
+                if (!tool) return Promise.resolve();
+
+                const existingIds = tool.categories.map(c => c.id);
+                const newIds = [...new Set([...existingIds, ...bulkCategoryIds])];
+
+                return fetch(`${apiUrl}/api/admin/tools/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ categoryIds: newIds }),
+                });
+            });
+
+            await Promise.all(updatePromises);
+
+            // Refresh tools to get updated categories
+            await fetchTools();
+
+            setSelectedToolIds([]);
+            setBulkCategoryIds([]);
+            setIsBulkCategoryModalOpen(false);
+            showSuccess('Categories added', 'Selected tools have been updated');
+        } catch (error) {
+            console.error('Error updating tools:', error);
+            showError('Error updating tools', 'Please try again');
+        }
+    };
+
     const filteredTools = tools.filter((tool) =>
         tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tool.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -617,6 +684,29 @@ export default function ToolsManagement() {
                     </div>
                 </div>
 
+                {/* Bulk Actions Bar */}
+                {selectedToolIds.length > 0 && (
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg flex items-center justify-between border border-blue-100">
+                        <span className="text-sm font-medium text-blue-900">
+                            {selectedToolIds.length} tools selected
+                        </span>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsBulkCategoryModalOpen(true)}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200"
+                            >
+                                Add Category
+                            </button>
+                            <button
+                                onClick={() => setIsBulkDeleteModalOpen(true)}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200"
+                            >
+                                Delete Selected
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Table */}
                 <div className="mt-8 flow-root">
                     <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -627,6 +717,8 @@ export default function ToolsManagement() {
                                     columns={columns}
                                     loading={loading}
                                     emptyMessage="No tools found"
+                                    selectedIds={selectedToolIds}
+                                    onSelectionChange={(ids) => setSelectedToolIds(ids as number[])}
                                     actions={(tool) => (
                                         <div className="flex gap-2">
                                             {!tool.verified && (
@@ -1027,6 +1119,74 @@ export default function ToolsManagement() {
                 <p className="text-sm text-gray-500">
                     Are you sure you want to delete <strong>{deletingTool?.name}</strong>? This action cannot be undone.
                 </p>
+            </Modal>
+
+            {/* Bulk Delete Modal */}
+            <Modal
+                isOpen={isBulkDeleteModalOpen}
+                onClose={() => setIsBulkDeleteModalOpen(false)}
+                title="Delete Selected Tools"
+                size="md"
+                footer={
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => setIsBulkDeleteModalOpen(false)}
+                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleBulkDelete}
+                            className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-50 sm:w-auto"
+                        >
+                            Delete {selectedToolIds.length} Tools
+                        </button>
+                    </>
+                }
+            >
+                <p className="text-sm text-gray-500">
+                    Are you sure you want to delete {selectedToolIds.length} selected tools? This action cannot be undone.
+                </p>
+            </Modal>
+
+            {/* Bulk Category Modal */}
+            <Modal
+                isOpen={isBulkCategoryModalOpen}
+                onClose={() => setIsBulkCategoryModalOpen(false)}
+                title="Add Categories to Selected Tools"
+                size="lg"
+                footer={
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => setIsBulkCategoryModalOpen(false)}
+                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleBulkAddCategory}
+                            className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-50 sm:w-auto"
+                        >
+                            Add Categories
+                        </button>
+                    </>
+                }
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-500">
+                        Select categories to add to the {selectedToolIds.length} selected tools. Existing categories will be preserved.
+                    </p>
+                    <CategorySelect
+                        label="Categories"
+                        categories={categories}
+                        selectedIds={bulkCategoryIds}
+                        onChange={setBulkCategoryIds}
+                    />
+                </div>
             </Modal>
         </AdminLayout >
     );
