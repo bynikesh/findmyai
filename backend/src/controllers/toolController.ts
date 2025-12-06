@@ -13,6 +13,8 @@ export const getTools = async (
             pricing?: string;
             platform?: string;
             model?: string;
+            featured?: string;
+            trending?: string;
             sort?: 'newest' | 'popular';
             page?: string;
             perPage?: string;
@@ -20,7 +22,7 @@ export const getTools = async (
     }>,
     reply: FastifyReply,
 ) => {
-    const { query, search, category, tags, pricing, platform, model, sort, page = '1', perPage = '10' } = request.query;
+    const { query, search, category, tags, pricing, platform, model, featured, trending, sort, page = '1', perPage = '10' } = request.query;
 
     const take = parseInt(perPage);
     const skip = (parseInt(page) - 1) * take;
@@ -59,6 +61,14 @@ export const getTools = async (
 
     if (model) {
         where.models_used = { has: model };
+    }
+
+    if (featured === 'true') {
+        where.featured = true;
+    }
+
+    if (trending === 'true') {
+        where.trending = true;
     }
 
     const orderBy: any = {};

@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ClockIcon, StarIcon } from '@heroicons/react/24/solid';
+import { apiUrl } from '../lib/constants';
 
 interface Tool {
     id: number;
@@ -7,83 +9,53 @@ interface Tool {
     slug: string;
     description: string;
     logo_url: string;
-    categories: string[];
-    pricing: string;
+    categories: { name: string }[];
+    pricing_type: string;
     average_rating: number | null;
     createdAt: string;
 }
 
-// Dummy data - replace with API call
-const recentTools: Tool[] = [
-    {
-        id: 5,
-        name: 'Claude 3',
-        slug: 'claude-3',
-        description: 'Next-generation AI assistant with advanced reasoning capabilities',
-        logo_url: 'https://via.placeholder.com/60?text=C3',
-        categories: ['Chat', 'Writing'],
-        pricing: 'Freemium',
-        average_rating: 4.9,
-        createdAt: '2024-03-01',
-    },
-    {
-        id: 6,
-        name: 'Sora',
-        slug: 'sora',
-        description: 'Text-to-video AI model that creates realistic videos',
-        logo_url: 'https://via.placeholder.com/60?text=SR',
-        categories: ['Video'],
-        pricing: 'Coming Soon',
-        average_rating: null,
-        createdAt: '2024-02-25',
-    },
-    {
-        id: 7,
-        name: 'Gemini Ultra',
-        slug: 'gemini-ultra',
-        description: 'Google\'s most capable multimodal AI model',
-        logo_url: 'https://via.placeholder.com/60?text=GM',
-        categories: ['Chat', 'Code'],
-        pricing: 'Paid',
-        average_rating: 4.7,
-        createdAt: '2024-02-20',
-    },
-    {
-        id: 8,
-        name: 'ElevenLabs',
-        slug: 'elevenlabs',
-        description: 'Advanced AI voice synthesis and cloning',
-        logo_url: 'https://via.placeholder.com/60?text=11',
-        categories: ['Audio'],
-        pricing: 'Freemium',
-        average_rating: 4.8,
-        createdAt: '2024-02-15',
-    },
-    {
-        id: 9,
-        name: 'Perplexity Pro',
-        slug: 'perplexity-pro',
-        description: 'AI-powered search engine with citations',
-        logo_url: 'https://via.placeholder.com/60?text=PX',
-        categories: ['Chat', 'Analytics'],
-        pricing: 'Paid',
-        average_rating: 4.6,
-        createdAt: '2024-02-10',
-    },
-    {
-        id: 10,
-        name: 'Stable Diffusion 3',
-        slug: 'stable-diffusion-3',
-        description: 'Latest version of the popular image generation model',
-        logo_url: 'https://via.placeholder.com/60?text=SD',
-        categories: ['Images'],
-        pricing: 'Free',
-        average_rating: 4.5,
-        createdAt: '2024-02-05',
-    },
-];
-
 export default function RecentlyAdded() {
+    const [tools, setTools] = useState<Tool[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchRecent = async () => {
+            try {
+                const res = await fetch(`${apiUrl}/api/tools?sort=newest&perPage=6`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setTools(data.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch recent tools:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRecent();
+    }, []);
+
+    if (loading) {
+        return (
+            <section className="bg-gradient-to-b from-white to-slate-50 py-16">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="animate-pulse space-y-8">
+                        <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="h-48 bg-gray-200 rounded-xl"></div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    if (tools.length === 0) return null;
+
     return (
         <section className="bg-gradient-to-b from-white to-slate-50 py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,7 +71,7 @@ export default function RecentlyAdded() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {recentTools.map((tool) => (
+                    {tools.map((tool) => (
                         <Link
                             key={tool.id}
                             to={`/tools/${tool.slug}`}
@@ -112,6 +84,9 @@ export default function RecentlyAdded() {
                                         src={tool.logo_url}
                                         alt={tool.name}
                                         className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = '/default/tool.png';
+                                        }}
                                     />
                                 </div>
 
@@ -121,18 +96,18 @@ export default function RecentlyAdded() {
                                         {tool.name}
                                     </h3>
 
-                                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                    <p className="text-sm text-gray-600 mb-3 line-clamp-2 h-10">
                                         {tool.description}
                                     </p>
 
                                     {/* Categories */}
-                                    <div className="flex flex-wrap gap-1.5 mb-3">
+                                    <div className="flex flex-wrap gap-1.5 mb-3 h-5 overflow-hidden">
                                         {tool.categories.slice(0, 2).map((category) => (
                                             <span
-                                                key={category}
+                                                key={category.name}
                                                 className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full"
                                             >
-                                                {category}
+                                                {category.name}
                                             </span>
                                         ))}
                                     </div>
@@ -149,8 +124,8 @@ export default function RecentlyAdded() {
                                                 <span className="font-medium text-gray-900">{tool.average_rating}</span>
                                             </div>
                                         )}
-                                        <span className="ml-auto font-medium text-gray-700">
-                                            {tool.pricing}
+                                        <span className="ml-auto font-medium text-gray-700 capitalize">
+                                            {tool.pricing_type}
                                         </span>
                                     </div>
                                 </div>

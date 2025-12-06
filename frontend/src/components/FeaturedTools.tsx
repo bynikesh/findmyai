@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StarIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/solid';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { apiUrl } from '../lib/constants';
 
 interface Tool {
     id: number;
@@ -8,66 +10,52 @@ interface Tool {
     slug: string;
     description: string;
     logo_url: string;
-    categories: string[];
-    pricing: string;
+    categories: { name: string }[];
+    pricing_type: string;
     average_rating: number;
     review_count: number;
-    is_trending: boolean;
+    trending: boolean;
 }
 
-// Dummy data - replace with API call
-const featuredTools: Tool[] = [
-    {
-        id: 1,
-        name: 'ChatGPT',
-        slug: 'chatgpt',
-        description: 'Advanced AI chatbot for conversations, writing, coding, and more',
-        logo_url: 'https://via.placeholder.com/80?text=GPT',
-        categories: ['Writing', 'Chat'],
-        pricing: 'Freemium',
-        average_rating: 4.8,
-        review_count: 1250,
-        is_trending: true,
-    },
-    {
-        id: 2,
-        name: 'Midjourney',
-        slug: 'midjourney',
-        description: 'Create stunning AI-generated images from text descriptions',
-        logo_url: 'https://via.placeholder.com/80?text=MJ',
-        categories: ['Images'],
-        pricing: 'Paid',
-        average_rating: 4.9,
-        review_count: 890,
-        is_trending: true,
-    },
-    {
-        id: 3,
-        name: 'GitHub Copilot',
-        slug: 'github-copilot',
-        description: 'AI pair programmer that helps you write code faster',
-        logo_url: 'https://via.placeholder.com/80?text=GH',
-        categories: ['Code'],
-        pricing: 'Paid',
-        average_rating: 4.7,
-        review_count: 650,
-        is_trending: false,
-    },
-    {
-        id: 4,
-        name: 'Runway ML',
-        slug: 'runway-ml',
-        description: 'AI-powered video editing and generation platform',
-        logo_url: 'https://via.placeholder.com/80?text=RW',
-        categories: ['Video'],
-        pricing: 'Freemium',
-        average_rating: 4.6,
-        review_count: 420,
-        is_trending: true,
-    },
-];
-
 export default function FeaturedTools() {
+    const [tools, setTools] = useState<Tool[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchFeatured = async () => {
+            try {
+                const res = await fetch(`${apiUrl}/api/tools?featured=true&perPage=4`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setTools(data.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch featured tools:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFeatured();
+    }, []);
+
+    if (loading) {
+        return (
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div className="animate-pulse space-y-8">
+                    <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[...Array(4)].map((_, i) => (
+                            <div key={i} className="h-64 bg-gray-200 rounded-2xl"></div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    if (tools.length === 0) return null;
+
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="flex items-center justify-between mb-8">
@@ -80,7 +68,7 @@ export default function FeaturedTools() {
                     </p>
                 </div>
                 <Link
-                    to="/tools"
+                    to="/tools?featured=true"
                     className="hidden sm:inline-flex items-center gap-2 text-purple-600 font-semibold hover:gap-3 transition-all"
                 >
                     View all
@@ -91,13 +79,13 @@ export default function FeaturedTools() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {featuredTools.map((tool) => (
+                {tools.map((tool) => (
                     <div
                         key={tool.id}
                         className="group bg-white rounded-2xl p-6 hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-1 relative overflow-hidden"
                     >
                         {/* Trending Badge */}
-                        {tool.is_trending && (
+                        {tool.trending && (
                             <div className="absolute top-3 right-3 flex items-center gap-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                                 <ArrowTrendingUpIcon className="w-3 h-3" />
                                 Trending
@@ -110,26 +98,29 @@ export default function FeaturedTools() {
                                 src={tool.logo_url}
                                 alt={tool.name}
                                 className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = '/default/tool.png';
+                                }}
                             />
                         </div>
 
                         {/* Content */}
-                        <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+                        <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-purple-600 transition-colors line-clamp-1">
                             {tool.name}
                         </h3>
 
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2 h-10">
                             {tool.description}
                         </p>
 
                         {/* Categories */}
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        <div className="flex flex-wrap gap-2 mb-4 h-6 overflow-hidden">
                             {tool.categories.slice(0, 2).map((category) => (
                                 <span
-                                    key={category}
+                                    key={category.name}
                                     className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium"
                                 >
-                                    {category}
+                                    {category.name}
                                 </span>
                             ))}
                         </div>
@@ -139,14 +130,14 @@ export default function FeaturedTools() {
                             <div className="flex items-center gap-1">
                                 <StarIcon className="w-4 h-4 text-yellow-400" />
                                 <span className="text-sm font-semibold text-gray-900">
-                                    {tool.average_rating}
+                                    {tool.average_rating || '0.0'}
                                 </span>
                                 <span className="text-sm text-gray-500">
-                                    ({tool.review_count})
+                                    ({tool.review_count || 0})
                                 </span>
                             </div>
-                            <span className="text-sm font-medium text-gray-700">
-                                {tool.pricing}
+                            <span className="text-sm font-medium text-gray-700 capitalize">
+                                {tool.pricing_type}
                             </span>
                         </div>
 
@@ -166,7 +157,7 @@ export default function FeaturedTools() {
 
             <div className="text-center mt-8 sm:hidden">
                 <Link
-                    to="/tools"
+                    to="/tools?featured=true"
                     className="inline-flex items-center gap-2 text-purple-600 font-semibold hover:gap-3 transition-all"
                 >
                     View all tools
