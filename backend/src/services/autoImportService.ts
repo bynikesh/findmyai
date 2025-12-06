@@ -305,7 +305,7 @@ export async function normalizeTool(raw: RawTool, source: string): Promise<Norma
     return {
         name: raw.name,
         description: raw.description || '',
-        website: raw.url || `https://example.com/${externalId}`,
+        website: '', // Official website will be found by AI
         category: raw.category,
         tags: Array.isArray(raw.tags) ? raw.tags.slice(0, 7) : [],
         logo_url: raw.logo || '/default/tool.png',
@@ -316,7 +316,7 @@ export async function normalizeTool(raw: RawTool, source: string): Promise<Norma
         price_range: raw.priceRange || undefined,
         free_trial: raw.freeTrial ?? false,
         open_source: raw.openSource ?? false,
-        repo_url: raw.repoUrl || undefined,
+        repo_url: raw.url || undefined, // Store source URL here
         key_features: raw.keyFeatures || [],
         pros: raw.pros || [],
         cons: raw.cons || [],
@@ -339,7 +339,8 @@ export async function normalizeTool(raw: RawTool, source: string): Promise<Norma
 export async function enrichTool(tool: NormalizedTool): Promise<NormalizedTool> {
     try {
         console.log(`   ✨ Enriching ${tool.name} with AI...`);
-        const metadata = await generateFullMetadata(tool.name, tool.description, tool.website);
+        // Use repo_url as the primary link for AI analysis
+        const metadata = await generateFullMetadata(tool.name, tool.description, tool.repo_url || tool.website);
 
         // Use AI-found website if available and different
         let finalWebsite = tool.website;
@@ -385,14 +386,14 @@ export async function enrichTool(tool: NormalizedTool): Promise<NormalizedTool> 
 // AI Helper: Generate Full Metadata
 // ---------------------------------------------------------------
 
-async function generateFullMetadata(name: string, description: string, website: string): Promise<Partial<NormalizedTool>> {
+async function generateFullMetadata(name: string, description: string, url: string): Promise<Partial<NormalizedTool>> {
     try {
         const prompt = `
 You are an expert AI tool analyst. Analyze the following AI tool and generate a comprehensive JSON profile for it.
 
 Tool Name: ${name}
 Initial Description: ${description}
-Website: ${website}
+Link: ${url}
 
 Please generate a valid JSON object with the following fields. Do not include any markdown formatting, just the raw JSON.
 

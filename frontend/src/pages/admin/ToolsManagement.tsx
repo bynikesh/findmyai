@@ -354,9 +354,9 @@ export default function ToolsManagement() {
         }
     };
 
-    const handleAutoFetch = async () => {
-        if (!formData.website || !/^https?:\/\/[^\s]+$/.test(formData.website)) {
-            setErrors({ ...errors, website: 'Valid URL required for auto-fetch' });
+    const handleFetchMetadata = async () => {
+        if (!formData.repo_url) {
+            showError('URL required', 'Please enter a Source URL first');
             return;
         }
 
@@ -368,7 +368,7 @@ export default function ToolsManagement() {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-                body: JSON.stringify({ url: formData.website }),
+                body: JSON.stringify({ url: formData.repo_url }),
             });
 
             if (res.ok) {
@@ -808,39 +808,38 @@ export default function ToolsManagement() {
                             helperText="Max 80 characters"
                             maxLength={80}
                         />
+                        <FormInput
+                            label="Website URL"
+                            type="url"
+                            value={formData.website}
+                            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                            helperText="Official website of the tool (leave empty if none)"
+                        />
+
                         <div className="flex gap-2 items-end">
-                            <div className="flex-grow">
+                            <div className="flex-1">
                                 <FormInput
-                                    label="Website URL"
+                                    label="Source / Repository URL"
                                     type="url"
-                                    value={formData.website}
-                                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                                    required
-                                    error={errors.website}
+                                    value={formData.repo_url}
+                                    onChange={(e) => setFormData({ ...formData, repo_url: e.target.value })}
+                                    helperText="Link to GitHub, HuggingFace, OpenRouter, etc."
                                 />
                             </div>
                             <button
                                 type="button"
-                                onClick={handleAutoFetch}
-                                disabled={isFetchingMetadata}
-                                className="mb-5 inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
-                                title="Auto-fill from website"
+                                onClick={handleFetchMetadata}
+                                disabled={isFetchingMetadata || !formData.repo_url}
+                                className="mb-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                             >
                                 {isFetchingMetadata ? (
-                                    <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                                    <ArrowPathIcon className="animate-spin h-4 w-4 mr-1" />
                                 ) : (
-                                    <SparklesIcon className="h-5 w-5" />
+                                    <SparklesIcon className="h-4 w-4 mr-1" />
                                 )}
                                 Auto-Fetch
                             </button>
                         </div>
-                        <FormInput
-                            label="Source / Repository URL"
-                            type="url"
-                            value={formData.repo_url}
-                            onChange={(e) => setFormData({ ...formData, repo_url: e.target.value })}
-                            helperText="Link to GitHub, HuggingFace, etc."
-                        />
                         <FormInput
                             label="Short Description"
                             textarea
