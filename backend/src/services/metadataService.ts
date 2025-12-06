@@ -45,6 +45,10 @@ export async function fetchUrlMetadata(url: string): Promise<Metadata> {
                 const faviconRes = await fetch(faviconUrl, { method: 'HEAD' });
                 if (faviconRes.ok) {
                     icon = faviconUrl;
+                } else {
+                    // Final fallback: Google Favicon Service
+                    const urlObj = new URL(url);
+                    icon = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=128`;
                 }
             } catch (e) {
                 // Ignore fallback error

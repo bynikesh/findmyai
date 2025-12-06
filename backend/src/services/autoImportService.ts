@@ -345,16 +345,23 @@ export async function enrichTool(tool: NormalizedTool): Promise<NormalizedTool> 
         let finalWebsite = tool.website;
         if (metadata.website_url && metadata.website_url.startsWith('http')) {
             finalWebsite = metadata.website_url;
+            console.log(`   🌐 AI found official website: ${finalWebsite}`);
         }
 
         // Fetch logo if missing or default
         let finalLogo = tool.logo_url;
         if ((!finalLogo || finalLogo.includes('default')) && finalWebsite) {
             try {
+                console.log(`   🖼️  Fetching logo from: ${finalWebsite}`);
                 const meta = await fetchUrlMetadata(finalWebsite);
-                if (meta.icon) finalLogo = meta.icon;
-            } catch (e) {
-                // Ignore fetch errors
+                if (meta.icon) {
+                    finalLogo = meta.icon;
+                    console.log(`   ✓ Found logo: ${finalLogo}`);
+                } else {
+                    console.log(`   ⚠️  No logo found for ${finalWebsite}`);
+                }
+            } catch (e: any) {
+                console.error(`   ❌ Failed to fetch logo from ${finalWebsite}:`, e.message);
             }
         }
 
