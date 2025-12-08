@@ -90,7 +90,7 @@ export default function ReviewForm({ toolId, onSuccess }: ReviewFormProps) {
                                 onClick={() => setRating(value)}
                                 onMouseEnter={() => setHoverRating(value)}
                                 onMouseLeave={() => setHoverRating(0)}
-                                className="focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                                className="focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
                             >
                                 {value <= (hoverRating || rating) ? (
                                     <StarIcon className="h-8 w-8 text-yellow-400" />
@@ -117,7 +117,7 @@ export default function ReviewForm({ toolId, onSuccess }: ReviewFormProps) {
                         onChange={(e) => setTitle(e.target.value)}
                         maxLength={200}
                         placeholder="Summarize your experience"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                     <p className="mt-1 text-xs text-gray-500">{title.length}/200</p>
                 </div>
@@ -134,7 +134,7 @@ export default function ReviewForm({ toolId, onSuccess }: ReviewFormProps) {
                         maxLength={2000}
                         rows={4}
                         placeholder="Share your thoughts about this tool"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                     <p className="mt-1 text-xs text-gray-500">{body.length}/2000</p>
                 </div>
@@ -144,7 +144,7 @@ export default function ReviewForm({ toolId, onSuccess }: ReviewFormProps) {
                     <button
                         type="submit"
                         disabled={loading || rating === 0}
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? 'Submitting...' : 'Submit Review'}
                     </button>

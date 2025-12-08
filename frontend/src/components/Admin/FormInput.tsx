@@ -19,7 +19,7 @@ const FormInput: React.FC<FormInputProps> = ({
 }) => {
     const inputClasses = `
         block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset
-        ${error ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-300 focus:ring-blue-600'}
+        ${error ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-300 focus:ring-indigo-600'}
         placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6
         ${className}
     `;

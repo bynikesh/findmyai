@@ -37,7 +37,7 @@ export default function HeroSection({
 
     const gradientStyle = brand_color_primary
         ? { background: `linear-gradient(135deg, ${brand_color_primary}15 0%, ${brand_color_primary}05 100%)` }
-        : { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' };
+        : { background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)' };
 
     return (
         <div className="relative overflow-hidden" style={gradientStyle}>
@@ -129,7 +129,7 @@ export default function HeroSection({
                             {/* Primary: Try Now Button */}
                             <button
                                 onClick={handleTryNow}
-                                className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                                className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                             >
                                 <PlayIcon className="h-6 w-6 group-hover:scale-110 transition-transform" />
                                 Try Now — It's Free

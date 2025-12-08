@@ -52,7 +52,7 @@ export default function ToolCard({ tool }: ToolCardProps) {
     };
 
     return (
-        <div className="group relative bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-200 overflow-hidden">
+        <div className="group relative bg-white rounded-2xl border border-gray-200 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-50 transition-all duration-200 overflow-hidden">
             <Link to={`/tools/${tool.slug}`} className="block p-5">
                 {/* Top Row: Logo + Save Button */}
                 <div className="flex items-start justify-between mb-4">

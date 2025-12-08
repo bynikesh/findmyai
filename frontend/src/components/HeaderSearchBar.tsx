@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Combobox, Transition } from '@headlessui/react';
-import { MagnifyingGlassIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { apiUrl } from 'lib/constants';
 
@@ -31,6 +31,7 @@ export default function HeaderSearchBar() {
                 const res = await fetch(`${apiUrl}/api/tools?search=${encodeURIComponent(query)}&perPage=5`);
                 if (res.ok) {
                     const data = await res.json();
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     setSuggestions(data.data.map((tool: any) => ({
                         id: tool.id,
                         name: tool.name,
@@ -71,7 +72,7 @@ export default function HeaderSearchBar() {
                         <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
                     <Combobox.Input
-                        className="block w-full rounded-md border-0 bg-gray-100 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                        className="block w-full rounded-md border-0 bg-gray-100 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         placeholder="Search AI tools..."
                         onChange={(event) => setQuery(event.target.value)}
                         onKeyDown={handleEnter}
@@ -98,7 +99,7 @@ export default function HeaderSearchBar() {
                                     <Combobox.Option
                                         key={item.id}
                                         className={({ active }) =>
-                                            `relative cursor-default select-none py-2 pl-3 pr-9 ${active ? 'bg-blue-600 text-white' : 'text-gray-900'
+                                            `relative cursor-default select-none py-2 pl-3 pr-9 ${active ? 'bg-indigo-600 text-white' : 'text-gray-900'
                                             }`
                                         }
                                         value={item}
@@ -110,7 +111,7 @@ export default function HeaderSearchBar() {
                                                         {item.name}
                                                     </span>
                                                     {item.category && (
-                                                        <span className={`ml-2 truncate text-gray-500 ${active ? 'text-blue-200' : ''}`}>
+                                                        <span className={`ml-2 truncate text-gray-500 ${active ? 'text-indigo-200' : ''}`}>
                                                             - {item.category}
                                                         </span>
                                                     )}

@@ -50,7 +50,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ setMobileMenuOpen }) => {
             <div className="flex h-16 shrink-0 items-center">
                 <Link to="/" className="flex items-center">
                     <span className="text-2xl font-bold text-white">FindMyAI</span>
-                    <span className="ml-2 rounded-md bg-blue-600 px-2 py-1 text-xs font-semibold text-white">
+                    <span className="ml-2 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white">
                         Admin
                     </span>
                 </Link>

@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client';
 
 // Mock the prisma module
 jest.mock('../lib/prisma', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { mockDeep } = require('jest-mock-extended');
     return {
         __esModule: true,

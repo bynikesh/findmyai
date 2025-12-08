@@ -10,7 +10,6 @@ import {
     Squares2X2Icon,
     BriefcaseIcon,
     ClipboardDocumentListIcon,
-    SparklesIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import HeaderSearchBar from './HeaderSearchBar';
@@ -156,14 +155,11 @@ export default function Header() {
             {({ open }) => (
                 <>
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="flex h-16 justify-between items-center">
+                        <div className="flex h-16 md:h-20 justify-between items-center">
                             {/* Logo */}
                             <div className="flex items-center">
                                 <Link to="/" className="flex items-center gap-2">
-                                    <SparklesIcon className="h-8 w-8 text-emerald-500" />
-                                    <span className="text-xl font-bold text-gray-900">
-                                        <span className="text-emerald-500">Find</span>MyAI
-                                    </span>
+                                    <img src="/logo-final.png" alt="FindMyAI" className="h-14 md:h-16 w-auto" />
                                 </Link>
                             </div>
 
@@ -177,7 +173,7 @@ export default function Header() {
                                                 className={clsx(
                                                     'inline-flex items-center gap-x-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors',
                                                     popoverOpen
-                                                        ? 'text-emerald-600 bg-emerald-50'
+                                                        ? 'text-indigo-600 bg-indigo-50'
                                                         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                                                 )}
                                             >
@@ -212,15 +208,15 @@ export default function Header() {
                                                                             className={clsx(
                                                                                 'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left',
                                                                                 activeTab === item.type
-                                                                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                                                                    : 'text-gray-700 hover:bg-white hover:text-emerald-600'
+                                                                                    ? 'bg-white text-indigo-600 shadow-sm'
+                                                                                    : 'text-gray-700 hover:bg-white hover:text-indigo-600'
                                                                             )}
                                                                         >
                                                                             <span className={clsx(
                                                                                 'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
                                                                                 activeTab === item.type
-                                                                                    ? 'bg-emerald-500 text-white'
-                                                                                    : 'bg-emerald-100 text-emerald-600'
+                                                                                    ? 'bg-indigo-500 text-white'
+                                                                                    : 'bg-indigo-100 text-indigo-600'
                                                                             )}>
                                                                                 <item.icon className="h-4 w-4" />
                                                                             </span>
@@ -237,7 +233,7 @@ export default function Header() {
                                                                         <Link
                                                                             key={item.name}
                                                                             to={item.href}
-                                                                            className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                                                                            className="text-sm text-gray-600 hover:text-indigo-600 transition-colors"
                                                                         >
                                                                             {item.name}
                                                                         </Link>
@@ -246,7 +242,7 @@ export default function Header() {
                                                                 <div className="mt-6 pt-4 border-t border-gray-100">
                                                                     <Link
                                                                         to={getSeeAllLink().href}
-                                                                        className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                                                                        className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
                                                                     >
                                                                         {getSeeAllLink().label} →
                                                                     </Link>
@@ -349,7 +345,7 @@ export default function Header() {
                                 ) : (
                                     <Link
                                         to="/login"
-                                        className="rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-colors"
+                                        className="rounded-full bg-indigo-500 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
                                     >
                                         Free Sign Up
                                     </Link>
@@ -392,7 +388,7 @@ export default function Header() {
                                         to={item.type === 'category' ? '/tools' : `/tools?view=${item.type}s`}
                                         className="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
                                     >
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white">
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500 text-white">
                                             <item.icon className="h-4 w-4" />
                                         </span>
                                         {item.name}
@@ -438,7 +434,7 @@ export default function Header() {
                                 <Disclosure.Button
                                     as={Link}
                                     to="/login"
-                                    className="block px-3 py-2 rounded-lg text-base font-medium text-emerald-600 hover:bg-emerald-50"
+                                    className="block px-3 py-2 rounded-lg text-base font-medium text-indigo-600 hover:bg-indigo-50"
                                 >
                                     Free Sign Up
                                 </Disclosure.Button>

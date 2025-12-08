@@ -44,7 +44,7 @@ export default function QuickInfoSidebar({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => onVisitWebsite?.()}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-200 mb-6"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-indigo-500 to-teal-500 hover:from-indigo-600 hover:to-teal-600 text-white font-bold text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-200 mb-6"
             >
                 🚀 Try Now
             </a>
