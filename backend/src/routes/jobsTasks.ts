@@ -288,4 +288,130 @@ export default async function (app: FastifyInstance) {
             }
         }
     );
+
+    // PUT /api/admin/jobs/:id - Update job
+    fastify.put(
+        '/admin/jobs/:id',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                params: z.object({ id: z.string() }),
+                body: z.object({
+                    name: z.string().optional(),
+                    slug: z.string().optional(),
+                    description: z.string().optional(),
+                    icon: z.string().optional(),
+                    featured: z.boolean().optional(),
+                }),
+            },
+        },
+        async (request, reply) => {
+            const { id } = request.params;
+
+            try {
+                const job = await prisma.job.update({
+                    where: { id: parseInt(id) },
+                    data: request.body as any,
+                    include: { _count: { select: { tools: true } } },
+                });
+                return reply.send({ job });
+            } catch (error) {
+                console.error('Error updating job:', error);
+                return reply.status(500).send({ error: 'Failed to update job' });
+            }
+        }
+    );
+
+    // DELETE /api/admin/jobs/:id - Delete job
+    fastify.delete(
+        '/admin/jobs/:id',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                params: z.object({ id: z.string() }),
+            },
+        },
+        async (request, reply) => {
+            const { id } = request.params;
+            const jobId = parseInt(id);
+
+            try {
+                // Disconnect tools first, then delete
+                await prisma.$transaction([
+                    prisma.job.update({
+                        where: { id: jobId },
+                        data: { tools: { set: [] } },
+                    }),
+                    prisma.job.delete({ where: { id: jobId } }),
+                ]);
+                return reply.send({ message: 'Job deleted successfully' });
+            } catch (error) {
+                console.error('Error deleting job:', error);
+                return reply.status(500).send({ error: 'Failed to delete job' });
+            }
+        }
+    );
+
+    // PUT /api/admin/tasks/:id - Update task
+    fastify.put(
+        '/admin/tasks/:id',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                params: z.object({ id: z.string() }),
+                body: z.object({
+                    name: z.string().optional(),
+                    slug: z.string().optional(),
+                    description: z.string().optional(),
+                    icon: z.string().optional(),
+                    featured: z.boolean().optional(),
+                }),
+            },
+        },
+        async (request, reply) => {
+            const { id } = request.params;
+
+            try {
+                const task = await prisma.task.update({
+                    where: { id: parseInt(id) },
+                    data: request.body as any,
+                    include: { _count: { select: { tools: true } } },
+                });
+                return reply.send({ task });
+            } catch (error) {
+                console.error('Error updating task:', error);
+                return reply.status(500).send({ error: 'Failed to update task' });
+            }
+        }
+    );
+
+    // DELETE /api/admin/tasks/:id - Delete task
+    fastify.delete(
+        '/admin/tasks/:id',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                params: z.object({ id: z.string() }),
+            },
+        },
+        async (request, reply) => {
+            const { id } = request.params;
+            const taskId = parseInt(id);
+
+            try {
+                // Disconnect tools first, then delete
+                await prisma.$transaction([
+                    prisma.task.update({
+                        where: { id: taskId },
+                        data: { tools: { set: [] } },
+                    }),
+                    prisma.task.delete({ where: { id: taskId } }),
+                ]);
+                return reply.send({ message: 'Task deleted successfully' });
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                return reply.status(500).send({ error: 'Failed to delete task' });
+            }
+        }
+    );
 }

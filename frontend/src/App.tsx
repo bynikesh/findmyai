@@ -17,6 +17,8 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AnalyticsDashboard from './pages/admin/AnalyticsDashboard'
 import ToolsManagement from './pages/admin/ToolsManagement'
 import CategoriesManagement from './pages/admin/CategoriesManagement'
+import JobsManagement from './pages/admin/JobsManagement'
+import TasksManagement from './pages/admin/TasksManagement'
 import ImportTools from './pages/admin/ImportTools'
 import NotFound from './pages/NotFound'
 import ServerError from './pages/ServerError'
@@ -50,6 +52,8 @@ function App() {
                         <Route path="/admin/tools" element={<AdminGuard><ToolsManagement /></AdminGuard>} />
                         <Route path="/admin/import-tools" element={<AdminGuard><ImportTools /></AdminGuard>} />
                         <Route path="/admin/categories" element={<AdminGuard><CategoriesManagement /></AdminGuard>} />
+                        <Route path="/admin/jobs" element={<AdminGuard><JobsManagement /></AdminGuard>} />
+                        <Route path="/admin/tasks" element={<AdminGuard><TasksManagement /></AdminGuard>} />
                         <Route path="/admin/analytics" element={<AdminGuard><AnalyticsDashboard /></AdminGuard>} />
                         <Route path="/admin/submissions" element={<AdminGuard><SubmissionsList /></AdminGuard>} />
                         <Route path="/admin/submissions/:id" element={<AdminGuard><SubmissionReview /></AdminGuard>} />
