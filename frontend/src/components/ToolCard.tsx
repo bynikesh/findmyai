@@ -9,7 +9,7 @@ interface Tool {
     slug: string;
     description: string;
     short_description?: string;
-    pricing: string;
+    pricing?: string;
     pricing_type?: string;
     categories: { name: string; slug: string }[];
     logo_url?: string | null;

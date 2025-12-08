@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import ToolCard from '../components/ToolCard';
 import { apiUrl } from 'lib/constants';
 
 interface Tool {
     id: number;
     name: string;
     slug: string;
+    description: string;
     short_description?: string;
-    logo_url?: string;
+    logo_url?: string | null;
+    pricing?: string;
     pricing_type?: string;
-    categories: Array<{ id: number; name: string; slug: string }>;
+    verified?: boolean;
+    categories: { name: string; slug: string }[];
 }
 
 interface JobDetail {
@@ -18,6 +22,25 @@ interface JobDetail {
     slug: string;
     description?: string;
     icon?: string;
+}
+
+// Skeleton for loading state (matches Bento card design)
+function ToolCardSkeleton() {
+    return (
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+            <div className="flex justify-between mb-4">
+                <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
+                <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+            </div>
+            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-1"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
+            <div className="flex gap-2">
+                <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+            </div>
+        </div>
+    );
 }
 
 export default function JobDetailPage() {
@@ -37,7 +60,20 @@ export default function JobDetailPage() {
                 if (res.ok) {
                     const data = await res.json();
                     setJob(data.job);
-                    setTools(data.tools);
+                    // Map tools to include required fields
+                    const mappedTools: Tool[] = (data.tools || []).map((t: any) => ({
+                        id: t.id,
+                        name: t.name,
+                        slug: t.slug,
+                        description: t.short_description || t.description || '',
+                        short_description: t.short_description,
+                        logo_url: t.logo_url,
+                        pricing: t.pricing || t.pricing_type || 'Free',
+                        pricing_type: t.pricing_type,
+                        verified: t.verified || false,
+                        categories: t.categories || [],
+                    }));
+                    setTools(mappedTools);
                     setTotalPages(data.meta?.totalPages || 1);
                 }
             } catch (error) {
@@ -50,10 +86,25 @@ export default function JobDetailPage() {
         fetchData();
     }, [slug, page]);
 
-    if (loading) {
+    if (loading && !job) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+            <div className="min-h-screen bg-gray-50">
+                <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white py-16">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="text-center animate-pulse">
+                            <div className="h-4 bg-emerald-400/50 rounded w-24 mx-auto mb-4"></div>
+                            <div className="h-12 bg-emerald-400/50 rounded w-64 mx-auto mb-4"></div>
+                            <div className="h-6 bg-emerald-400/50 rounded w-96 mx-auto"></div>
+                        </div>
+                    </div>
+                </div>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                        {[...Array(8)].map((_, i) => (
+                            <ToolCardSkeleton key={i} />
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -100,62 +151,29 @@ export default function JobDetailPage() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                             {tools.map((tool) => (
-                                <Link
-                                    key={tool.id}
-                                    to={`/tools/${tool.slug}`}
-                                    className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100"
-                                >
-                                    <div className="flex items-start gap-4">
-                                        <img
-                                            src={tool.logo_url || '/default/tool.png'}
-                                            alt={tool.name}
-                                            className="w-12 h-12 rounded-lg object-cover"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = '/default/tool.png';
-                                            }}
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-gray-900 truncate">
-                                                {tool.name}
-                                            </h3>
-                                            <p className="text-sm text-gray-500 line-clamp-2 mt-1">
-                                                {tool.short_description || 'AI-powered tool'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="mt-4 flex items-center justify-between">
-                                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                                            {tool.pricing_type || 'Free'}
-                                        </span>
-                                        {tool.categories?.[0] && (
-                                            <span className="text-xs text-gray-500">
-                                                {tool.categories[0].name}
-                                            </span>
-                                        )}
-                                    </div>
-                                </Link>
+                                <ToolCard key={tool.id} tool={tool} />
                             ))}
                         </div>
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="mt-8 flex justify-center gap-2">
+                            <div className="mt-10 flex justify-center gap-2">
                                 <button
                                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                                     disabled={page === 1}
-                                    className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                    className="px-6 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all"
                                 >
                                     Previous
                                 </button>
-                                <span className="px-4 py-2 text-gray-600">
+                                <span className="px-4 py-2.5 text-gray-600">
                                     Page {page} of {totalPages}
                                 </span>
                                 <button
                                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                     disabled={page === totalPages}
-                                    className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                    className="px-6 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all"
                                 >
                                     Next
                                 </button>

@@ -1,7 +1,39 @@
 import { useState, useEffect } from 'react';
-import ToolCard, { Tool } from './ToolCard';
+import ToolCard from '../ToolCard';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { apiUrl } from 'lib/constants';
+
+interface Tool {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    short_description?: string;
+    logo_url?: string | null;
+    pricing?: string;
+    pricing_type?: string;
+    verified?: boolean;
+    categories: { name: string; slug: string }[];
+}
+
+// Skeleton for loading state (matches Bento card design)
+function ToolCardSkeleton() {
+    return (
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+            <div className="flex justify-between mb-4">
+                <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
+                <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+            </div>
+            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-1"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
+            <div className="flex gap-2">
+                <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+            </div>
+        </div>
+    );
+}
 
 export default function ToolGrid() {
     const [tools, setTools] = useState<Tool[]>([]);
@@ -11,25 +43,24 @@ export default function ToolGrid() {
 
     const fetchTools = async (pageNum: number) => {
         try {
+            setLoading(true);
             const res = await fetch(`${apiUrl}/api/tools?page=${pageNum}&perPage=12&sort=popular`);
             if (!res.ok) throw new Error('Failed to fetch tools');
             const json = await res.json();
-            const mapped = json.data.map((t: any) => ({
+
+            const mapped: Tool[] = json.data.map((t: any) => ({
                 id: t.id,
                 name: t.name,
                 slug: t.slug,
-                description: t.description,
-                logo_url: t.logo_url || '',
-                image_url: t.screenshots && t.screenshots.length > 0 ? t.screenshots[0] : undefined,
-                categories: t.categories ? t.categories.map((c: any) => c.name) : [],
-                likes: Math.floor(Math.random() * 1000) + 50,
-                views: `${Math.floor(Math.random() * 50) + 1}k`,
-                author: {
-                    name: t.author?.name || t.name,
-                    avatar: t.logo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${t.id}`,
-                    pro: false,
-                },
+                description: t.description || '',
+                short_description: t.short_description,
+                logo_url: t.logo_url,
+                pricing: t.pricing || 'Free',
+                pricing_type: t.pricing_type,
+                verified: t.verified || false,
+                categories: t.categories || [],
             }));
+
             if (pageNum === 1) {
                 setTools(mapped);
             } else {
@@ -39,7 +70,7 @@ export default function ToolGrid() {
             setHasMore(json.meta.page < json.meta.totalPages);
         } catch (error) {
             console.error('Error fetching tools:', error);
-            setTools([]); // Clear tools on error
+            setTools([]);
         } finally {
             setLoading(false);
         }
@@ -58,18 +89,9 @@ export default function ToolGrid() {
     if (loading && tools.length === 0) {
         return (
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                     {[...Array(8)].map((_, i) => (
-                        <div key={i} className="animate-pulse">
-                            <div className="bg-gray-200 aspect-[4/3] rounded-lg mb-3"></div>
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
-                                    <div className="w-24 h-4 bg-gray-200 rounded"></div>
-                                </div>
-                                <div className="w-12 h-4 bg-gray-200 rounded"></div>
-                            </div>
-                        </div>
+                        <ToolCardSkeleton key={i} />
                     ))}
                 </div>
             </div>
@@ -78,22 +100,26 @@ export default function ToolGrid() {
 
     return (
         <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {tools.map((tool) => (
                     <ToolCard key={tool.id} tool={tool} />
                 ))}
             </div>
 
             {hasMore && (
-                <div className="mt-16 text-center">
+                <div className="mt-12 text-center">
                     <button
                         onClick={handleLoadMore}
-                        className="bg-white border border-gray-200 text-gray-700 font-medium px-8 py-3 rounded-full hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow flex items-center gap-2 mx-auto"
+                        disabled={loading}
+                        className="bg-white border border-gray-300 text-gray-700 font-medium px-8 py-3 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm flex items-center gap-2 mx-auto disabled:opacity-50"
                     >
                         {loading ? (
-                            <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                            <>
+                                <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                                Loading...
+                            </>
                         ) : (
-                            'Load more shots'
+                            'Load More Tools'
                         )}
                     </button>
                 </div>
