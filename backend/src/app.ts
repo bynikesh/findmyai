@@ -98,7 +98,7 @@ export const buildApp = () => {
 
             if (tool) {
                 const title = tool.seo_title || `${tool.name} - AI Tool Review | FindMyAI`;
-                const description = tool.seo_meta_description || tool.short_description || tool.description?.substring(0, 160) || '';
+                const description = tool.seo_meta_description || tool.short_description || tool.description?.substring(0, 160) || 'Discover this AI tool on FindMyAI';
                 const image = tool.social_share_image || tool.logo_url || `${baseUrl}/og-image.png`;
                 const url = `${baseUrl}/tools/${slug}`;
 
@@ -118,7 +118,7 @@ export const buildApp = () => {
                 }
 
                 // Build JSON-LD schema
-                const jsonLdSchema = {
+                const jsonLdSchema: Record<string, unknown> = {
                     "@context": "https://schema.org",
                     "@type": "SoftwareApplication",
                     "name": tool.name,
@@ -132,43 +132,41 @@ export const buildApp = () => {
                         "price": priceValue,
                         "priceCurrency": "USD",
                         "availability": "https://schema.org/InStock"
-                    },
-                    "aggregateRating": ratingCount > 0 ? {
+                    }
+                };
+
+                // Add aggregate rating if there are reviews
+                if (ratingCount > 0) {
+                    jsonLdSchema.aggregateRating = {
                         "@type": "AggregateRating",
                         "ratingValue": avgRating,
                         "ratingCount": ratingCount.toString(),
                         "bestRating": "5",
                         "worstRating": "1"
-                    } : undefined
-                };
-
-                // Remove undefined fields
-                if (!jsonLdSchema.aggregateRating) {
-                    delete jsonLdSchema.aggregateRating;
+                    };
                 }
 
-                const jsonLdScript = `<script type="application/ld+json">${JSON.stringify(jsonLdSchema, null, 2)}</script>`;
+                const jsonLdScript = `<script type="application/ld+json">${JSON.stringify(jsonLdSchema)}</script>`;
 
-                // Replace all SEO placeholders
-                html = html
-                    // Title
-                    .replace(/<!--SEO_TITLE-->.*?<!--\/SEO_TITLE-->/g, title)
-                    // Description
-                    .replace(/<!--SEO_DESC-->.*?<!--\/SEO_DESC-->/g, description)
-                    // Open Graph
-                    .replace(/<!--SEO_URL-->.*?<!--\/SEO_URL-->/g, url)
-                    .replace(/<!--SEO_OG_TITLE-->.*?<!--\/SEO_OG_TITLE-->/g, title)
-                    .replace(/<!--SEO_OG_DESC-->.*?<!--\/SEO_OG_DESC-->/g, description)
-                    .replace(/<!--SEO_IMAGE-->.*?<!--\/SEO_IMAGE-->/g, image)
-                    // Twitter
-                    .replace(/<!--SEO_TWITTER_URL-->.*?<!--\/SEO_TWITTER_URL-->/g, url)
-                    .replace(/<!--SEO_TWITTER_TITLE-->.*?<!--\/SEO_TWITTER_TITLE-->/g, title)
-                    .replace(/<!--SEO_TWITTER_DESC-->.*?<!--\/SEO_TWITTER_DESC-->/g, description)
-                    .replace(/<!--SEO_TWITTER_IMAGE-->.*?<!--\/SEO_TWITTER_IMAGE-->/g, image)
-                    // Canonical
-                    .replace(/<!--SEO_CANONICAL-->.*?<!--\/SEO_CANONICAL-->/g, url)
-                    // JSON-LD Schema
-                    .replace(/<!--JSON_LD_SCHEMA-->.*?<!--\/JSON_LD_SCHEMA-->/g, jsonLdScript);
+                // Replace placeholders with actual values
+                // Using a helper function for cleaner replacements
+                const replacePlaceholder = (tag: string, value: string) => {
+                    const regex = new RegExp(`<!--${tag}-->.*?<!--/${tag}-->`, 'gs');
+                    return html.replace(regex, value);
+                };
+
+                html = replacePlaceholder('SEO_TITLE', title);
+                html = replacePlaceholder('SEO_DESC', description);
+                html = replacePlaceholder('SEO_URL', url);
+                html = replacePlaceholder('SEO_OG_TITLE', title);
+                html = replacePlaceholder('SEO_OG_DESC', description);
+                html = replacePlaceholder('SEO_IMAGE', image);
+                html = replacePlaceholder('SEO_TWITTER_URL', url);
+                html = replacePlaceholder('SEO_TWITTER_TITLE', title);
+                html = replacePlaceholder('SEO_TWITTER_DESC', description);
+                html = replacePlaceholder('SEO_TWITTER_IMAGE', image);
+                html = replacePlaceholder('SEO_CANONICAL', url);
+                html = replacePlaceholder('JSON_LD_SCHEMA', jsonLdScript);
             }
 
             return reply.type('text/html').send(html);
