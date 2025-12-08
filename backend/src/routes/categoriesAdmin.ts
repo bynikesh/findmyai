@@ -84,11 +84,23 @@ export default async function (app: FastifyInstance) {
         },
         async (request, reply) => {
             const { id } = request.params;
+            const categoryId = parseInt(id);
 
             try {
-                await prisma.category.delete({
-                    where: { id: parseInt(id) },
-                });
+                // Delete related records first
+                await prisma.$transaction([
+                    // Delete category views
+                    prisma.categoryView.deleteMany({ where: { categoryId } }),
+                    // Delete trending category snapshots
+                    prisma.trendingCategory.deleteMany({ where: { categoryId } }),
+                    // Disconnect tools from this category (don't delete tools)
+                    prisma.category.update({
+                        where: { id: categoryId },
+                        data: { tools: { set: [] } },
+                    }),
+                    // Delete the category
+                    prisma.category.delete({ where: { id: categoryId } }),
+                ]);
                 return { message: 'Category deleted successfully' };
             } catch (error: any) {
                 console.error('Error deleting category:', error);

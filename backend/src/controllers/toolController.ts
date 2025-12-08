@@ -305,14 +305,22 @@ export const deleteTool = async (
     reply: FastifyReply,
 ) => {
     const { id } = request.params;
+    const toolId = parseInt(id);
 
     try {
-        await prisma.tool.delete({
-            where: { id: parseInt(id) },
-        });
+        // Delete related records first (due to foreign key constraints)
+        await prisma.$transaction([
+            prisma.review.deleteMany({ where: { toolId } }),
+            prisma.view.deleteMany({ where: { toolId } }),
+            prisma.toolView.deleteMany({ where: { toolId } }),
+            prisma.externalClick.deleteMany({ where: { toolId } }),
+            prisma.trendingTool.deleteMany({ where: { toolId } }),
+            prisma.tool.delete({ where: { id: toolId } }),
+        ]);
         return { message: 'Tool deleted successfully' };
-    } catch (error) {
-        return reply.status(500).send({ message: 'Failed to delete tool', error });
+    } catch (error: any) {
+        console.error('Error deleting tool:', error);
+        return reply.status(500).send({ message: 'Failed to delete tool', error: error.message });
     }
 };
 
