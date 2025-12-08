@@ -6,6 +6,7 @@
 import prisma from '../lib/prisma';
 import Anthropic from '@anthropic-ai/sdk';
 import { fetchUrlMetadata } from './metadataService';
+import * as cheerio from 'cheerio';
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -292,7 +293,179 @@ export async function fetchFromRapidAPI(): Promise<ImportResult> {
 }
 
 // ---------------------------------------------------------------
-// 4️⃣ NORMALIZE TOOL DATA
+// 4️⃣ FETCH FROM GITHUB AWESOME LIST
+// ---------------------------------------------------------------
+
+export async function fetchFromGithubAwesome(repoUrl: string = 'https://github.com/mahseema/awesome-ai-tools'): Promise<ImportResult> {
+    resetStopFlag();
+
+    const result: ImportResult = {
+        source: 'github_awesome',
+        fetched: 0,
+        imported: 0,
+        skipped: 0,
+        errors: [],
+    };
+
+    try {
+        console.log(`🐙 Fetching from GitHub Awesome List: ${repoUrl}...`);
+
+        const response = await fetch(repoUrl);
+        if (!response.ok) {
+            throw new Error(`GitHub fetch error: ${response.status}`);
+        }
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        // Find the readme content
+        const readme = $('article.markdown-body');
+        if (!readme.length) {
+            throw new Error('Could not find README content on GitHub page');
+        }
+
+        let currentCategory = 'Other';
+
+        // Iterate through headers and lists to capture context
+        const elements = readme.find('h2, h3, ul');
+
+        // We need to process sequentially to capture category context
+        // Cheerio's each is synchronous
+        elements.each((_, el) => {
+            if (shouldStop) return false; // Break loop
+
+            const $el = $(el);
+            const tagName = (el as any).tagName.toLowerCase();
+
+            if (tagName === 'h2' || tagName === 'h3') {
+                const text = $el.text().trim();
+                // Filter out non-category headers like "Contents", "Contributing"
+                if (!['contents', 'contributing', 'credits', 'license', 'table of contents'].includes(text.toLowerCase())) {
+                    currentCategory = text;
+                }
+            } else if (tagName === 'ul') {
+                // Process list items
+                $el.find('li').each((_, li) => {
+                    if (shouldStop) return false;
+
+                    try {
+                        const $li = $(li);
+                        const $link = $li.find('a').first();
+
+                        if (!$link.length) return;
+
+                        const name = $link.text().trim();
+                        const toolUrl = $link.attr('href');
+
+                        // Parse description (text after the link)
+                        // This handles format: "[Name](url) - Description" or "[Name](url): Description"
+                        let description = $li.text().replace(name, '').trim();
+                        description = description.replace(/^[\s-:]+/, ''); // Remove leading dash/colon
+
+                        if (!name || !toolUrl || toolUrl.startsWith('#')) return;
+
+                        // Increment fetched count
+                        result.fetched++;
+
+                        // Process this tool
+                        // We use an IIFE-like pattern essentially by calling an async function for processing 
+                        // Note: inside Cheerio's sync loop, async/await won't pause the loop naturally.
+                        // However, we can't easily make Cheerio's `.each` async. 
+                        // Only "fire and forget" or collecting all items first then processing.
+                        // Collecting first is safer for rate limits and async flow control.
+                    } catch (e) {
+                        // ignore extraction errors
+                    }
+                });
+            }
+        });
+
+        // RE-IMPLEMENTATION: Collect items first to handle async processing properly
+        const toolsToProcess: Array<{ name: string, url: string, description: string, category: string }> = [];
+        let tempCategory = 'Other';
+
+        readme.children().each((_, el) => {
+            const $el = $(el);
+            const tagName = (el as any).tagName.toLowerCase();
+
+            if (tagName === 'h2' || tagName === 'h3') {
+                const text = $el.text().trim();
+                // Filter out non-category headers
+                if (!['contents', 'contributing', 'credits', 'license', 'table of contents', 'sponsors'].includes(text.toLowerCase())) {
+                    tempCategory = text;
+                }
+            } else if (tagName === 'ul') {
+                $el.find('li').each((_, li) => {
+                    const $li = $(li);
+                    const $link = $li.find('a').first();
+
+                    if (!$link.length) return;
+
+                    const name = $link.text().trim();
+                    const toolUrl = $link.attr('href');
+
+                    if (!name || !toolUrl || toolUrl.startsWith('#') || toolUrl.includes('github.com/mahseema')) return;
+
+                    let description = $li.text().replace(name, '').trim();
+                    description = description.replace(/^[\s-:]+/, '');
+
+                    toolsToProcess.push({
+                        name,
+                        url: toolUrl,
+                        description,
+                        category: tempCategory
+                    });
+                });
+            }
+        });
+
+        console.log(`   Found ${toolsToProcess.length} tools to process`);
+        result.fetched = toolsToProcess.length;
+
+        // Process collected tools sequentially
+        for (const tool of toolsToProcess) {
+            if (shouldStop) {
+                console.log('🛑 Import stopped by user.');
+                break;
+            }
+
+            try {
+                const normalized = await normalizeTool({
+                    name: tool.name,
+                    description: tool.description,
+                    url: tool.url,
+                    category: tool.category,
+                }, 'github_awesome');
+
+                const isDuplicate = await dedupeTool(normalized);
+                if (isDuplicate) {
+                    result.skipped++;
+                    process.stdout.write('.'); // progress indicator
+                    continue;
+                }
+
+                console.log(`\n   Processing: ${tool.name}...`);
+                const enriched = await enrichTool(normalized);
+                await saveTool(enriched);
+                result.imported++;
+                console.log(`   ✓ Imported: ${enriched.name}`);
+
+            } catch (error: any) {
+                result.errors.push(`Error importing ${tool.name}: ${error.message}`);
+                console.error(`   ✗ Error: ${tool.name}`, error.message);
+            }
+        }
+
+    } catch (error: any) {
+        result.errors.push(`GitHub fetch error: ${error.message}`);
+        console.error('❌ GitHub import error:', error.message);
+    }
+
+    return result;
+}
+
+// ---------------------------------------------------------------
+// 5️⃣ NORMALIZE TOOL DATA
 // ---------------------------------------------------------------
 
 export async function normalizeTool(raw: RawTool, source: string): Promise<NormalizedTool> {
@@ -333,7 +506,7 @@ export async function normalizeTool(raw: RawTool, source: string): Promise<Norma
 }
 
 // ---------------------------------------------------------------
-// 5️⃣ ENRICH TOOL WITH AI (FULL METADATA)
+// 6️⃣ ENRICH TOOL WITH AI (FULL METADATA)
 // ---------------------------------------------------------------
 
 export async function enrichTool(tool: NormalizedTool): Promise<NormalizedTool> {
@@ -447,7 +620,7 @@ If you are unsure about a specific field, make a reasonable inference based on t
 }
 
 // ---------------------------------------------------------------
-// 6️⃣ DEDUPLICATE TOOL
+// 7️⃣ DEDUPLICATE TOOL
 // ---------------------------------------------------------------
 
 export async function dedupeTool(tool: NormalizedTool): Promise<boolean> {
@@ -481,7 +654,7 @@ export async function dedupeTool(tool: NormalizedTool): Promise<boolean> {
 }
 
 // ---------------------------------------------------------------
-// 7️⃣ SAVE TOOL TO DATABASE
+// 8️⃣ SAVE TOOL TO DATABASE
 // ---------------------------------------------------------------
 
 export async function saveTool(tool: NormalizedTool): Promise<void> {
@@ -580,7 +753,7 @@ export async function saveTool(tool: NormalizedTool): Promise<void> {
 }
 
 // ---------------------------------------------------------------
-// 8️⃣ RUN FULL IMPORT
+// 9️⃣ RUN FULL IMPORT
 // ---------------------------------------------------------------
 
 export async function runImportAll(): Promise<ImportResult[]> {
@@ -603,6 +776,11 @@ export async function runImportAll(): Promise<ImportResult[]> {
     results.push(raResult);
     await logImport(raResult);
 
+    // Import from GitHub Awesome
+    const ghResult = await fetchFromGithubAwesome();
+    results.push(ghResult);
+    await logImport(ghResult);
+
     // Create summary log
     const summary: ImportResult = {
         source: 'all',
@@ -623,7 +801,7 @@ export async function runImportAll(): Promise<ImportResult[]> {
 }
 
 // ---------------------------------------------------------------
-// 9️⃣ LOG IMPORT TO DATABASE
+// 🔟 LOG IMPORT TO DATABASE
 // ---------------------------------------------------------------
 
 async function logImport(result: ImportResult): Promise<void> {
@@ -639,7 +817,7 @@ async function logImport(result: ImportResult): Promise<void> {
 }
 
 // ---------------------------------------------------------------
-// 🔟 GET IMPORT LOGS
+// 1️⃣1️⃣ GET IMPORT LOGS
 // ---------------------------------------------------------------
 
 export async function getImportLogs(limit: number = 20) {

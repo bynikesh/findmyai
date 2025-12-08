@@ -303,6 +303,18 @@ export default function ImportTools() {
                             </button>
 
                             <button
+                                onClick={() => runImport('github_awesome')}
+                                disabled={!!importing}
+                                className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700 disabled:opacity-50"
+                            >
+                                {importing === 'github_awesome' ? (
+                                    <ArrowPathIcon className="animate-spin -ml-1 mr-2 h-5 w-5" />
+                                ) : (
+                                    '🐙 GitHub Awesome'
+                                )}
+                            </button>
+
+                            <button
                                 onClick={() => runImport('all')}
                                 disabled={!!importing}
                                 className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"

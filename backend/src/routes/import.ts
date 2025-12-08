@@ -27,7 +27,7 @@ export default async function (app: FastifyInstance) {
             {
                 schema: {
                     params: z.object({
-                        source: z.enum(['huggingface', 'openrouter', 'rapidapi']),
+                        source: z.enum(['huggingface', 'openrouter', 'rapidapi', 'github_awesome']),
                     }),
                 },
             },

@@ -5,6 +5,8 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import ToolList from './pages/ToolList'
 import ToolDetail from './pages/ToolDetail'
+import JobDetail from './pages/JobDetail'
+import TaskDetail from './pages/TaskDetail'
 import Submit from './pages/Submit'
 import Login from './pages/Login'
 import ChatWidget from './components/ChatWidget'
@@ -34,6 +36,8 @@ function App() {
                         <Route path="/tools" element={<ToolList />} />
                         <Route path="/categories" element={<CategoryList />} />
                         <Route path="/tools/:slug" element={<ToolDetail />} />
+                        <Route path="/jobs/:slug" element={<JobDetail />} />
+                        <Route path="/tasks/:slug" element={<TaskDetail />} />
                         <Route path="/submit" element={<Submit />} />
                         <Route path="/login" element={<Login />} />
 

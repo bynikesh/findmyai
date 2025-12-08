@@ -112,6 +112,8 @@ model Tool {
 
   categories   Category[]
   tags         Tag[]
+  jobs         Job[]      // User roles this tool is ideal for
+  tasks        Task[]     // Actions this tool can perform
   reviews      Review[]
   views        View[]
   
@@ -150,6 +152,36 @@ model Tag {
   id    Int    @id @default(autoincrement())
   name  String @unique
   tools Tool[]
+}
+
+// ---------------------------------------------------------------
+// Multi-dimensional Categorization: Jobs and Tasks
+// ---------------------------------------------------------------
+
+model Job {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique  // e.g., "Data Scientist", "Content Creator", "Developer"
+  slug        String   @unique
+  description String?
+  icon        String?  // Icon name or URL
+  featured    Boolean  @default(false)
+  tools       Tool[]
+
+  @@index([slug])
+  @@index([featured])
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique  // e.g., "Create Image", "Write Blog Posts", "Summarize Text"
+  slug        String   @unique
+  description String?
+  icon        String?  // Icon name or URL
+  featured    Boolean  @default(false)
+  tools       Tool[]
+
+  @@index([slug])
+  @@index([featured])
 }
 
 model Review {

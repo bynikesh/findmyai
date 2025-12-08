@@ -54,10 +54,13 @@ export async function runSourceImport(
             case 'rapidapi':
                 result = await importService.fetchFromRapidAPI();
                 break;
+            case 'github_awesome':
+                result = await importService.fetchFromGithubAwesome();
+                break;
             default:
                 return reply.status(400).send({
                     error: 'Invalid source',
-                    message: 'Source must be: huggingface, openrouter, or rapidapi',
+                    message: 'Source must be: huggingface, openrouter, rapidapi, or github_awesome',
                 });
         }
 
