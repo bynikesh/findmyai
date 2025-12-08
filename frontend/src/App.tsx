@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import CategoryList from './pages/CategoryList'
 import Header from './components/Header'
@@ -25,10 +26,16 @@ import ImportTools from './pages/admin/ImportTools'
 import NotFound from './pages/NotFound'
 import ServerError from './pages/ServerError'
 import { ToastProvider } from './contexts/ToastContext'
+import { trackPageView } from './lib/gtag'
 
 function App() {
     const location = useLocation();
     const isAdminRoute = location.pathname.startsWith('/admin');
+
+    // Track page views on route change
+    useEffect(() => {
+        trackPageView(location.pathname + location.search);
+    }, [location]);
 
     return (
         <ToastProvider>
