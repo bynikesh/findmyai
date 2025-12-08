@@ -37,7 +37,18 @@ export default function QuickInfoSidebar({
     onVisitWebsite,
 }: QuickInfoSidebarProps) {
     return (
-        <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+            {/* Try Now CTA */}
+            <a
+                href={website}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => onVisitWebsite?.()}
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-200 mb-6"
+            >
+                🚀 Try Now
+            </a>
+
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Info</h3>
 
             <div className="space-y-4">

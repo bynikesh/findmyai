@@ -45,6 +45,7 @@ export default function ToolDetail() {
             {/* Hero Section */}
             <HeroSection
                 name={tool.name}
+                slug={slug}
                 tagline={tool.tagline}
                 logo_url={tool.logo_url}
                 short_description={tool.short_description}

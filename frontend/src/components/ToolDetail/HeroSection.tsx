@@ -1,8 +1,10 @@
 import { CheckBadgeIcon, FireIcon, SparklesIcon, TrophyIcon } from '@heroicons/react/24/solid';
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon, PlayIcon } from '@heroicons/react/24/outline';
+import { trackExternalClick } from '../../lib/gtag';
 
 interface HeroSectionProps {
     name: string;
+    slug?: string;
     tagline?: string;
     logo_url?: string;
     short_description?: string;
@@ -16,6 +18,7 @@ interface HeroSectionProps {
 
 export default function HeroSection({
     name,
+    slug,
     tagline,
     logo_url,
     short_description,
@@ -26,8 +29,9 @@ export default function HeroSection({
     editors_choice,
     brand_color_primary,
 }: HeroSectionProps) {
-    const handleVisitWebsite = () => {
-        // TODO: Add click tracking
+    const handleTryNow = () => {
+        // Track the click in Google Analytics
+        trackExternalClick(slug || name, website);
         window.open(website, '_blank', 'noopener,noreferrer');
     };
 
@@ -120,14 +124,26 @@ export default function HeroSection({
                             <p className="text-gray-600 mb-6 max-w-3xl">{short_description}</p>
                         )}
 
-                        {/* CTA Button */}
-                        <button
-                            onClick={handleVisitWebsite}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                        >
-                            Visit Website
-                            <ArrowTopRightOnSquareIcon className="h-5 w-5" />
-                        </button>
+                        {/* CTA Buttons */}
+                        <div className="flex flex-wrap gap-4">
+                            {/* Primary: Try Now Button */}
+                            <button
+                                onClick={handleTryNow}
+                                className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                            >
+                                <PlayIcon className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                                Try Now — It's Free
+                            </button>
+
+                            {/* Secondary: Visit Website */}
+                            <button
+                                onClick={handleTryNow}
+                                className="inline-flex items-center gap-2 px-6 py-4 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-300 hover:border-gray-400 shadow-sm transition-all duration-200"
+                            >
+                                Visit Website
+                                <ArrowTopRightOnSquareIcon className="h-5 w-5" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
