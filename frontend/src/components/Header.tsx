@@ -34,6 +34,7 @@ interface Category {
 
 const navigation = [
     { name: 'Tools', href: '/tools', current: false },
+    { name: 'Blog', href: '/blog', current: false },
     { name: 'Submit Tool', href: '/submit', current: false },
 ];
 

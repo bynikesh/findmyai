@@ -121,6 +121,9 @@ model Tool {
   toolViews       ToolView[]
   externalClicks  ExternalClick[]
   trendingSnapshots TrendingTool[]
+  
+  // Blog relations
+  blog_posts      BlogPost[]  @relation("BlogToolRelation")
 
   @@index([slug])
   @@index([trending_score])
@@ -304,3 +307,38 @@ model ImportLog {
 
   @@index([source, timestamp])
 }
+
+// ---------------------------------------------------------------
+// Blog/News Section
+// ---------------------------------------------------------------
+
+model BlogPost {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String    @unique
+  excerpt         String?   @db.Text    // Short summary for listings
+  content         String    @db.Text    // Full article content (Markdown)
+  cover_image     String?               // Hero image URL
+  
+  // SEO Fields
+  seo_title       String?
+  seo_description String?   @db.Text
+  
+  // Metadata
+  author          String?               // Author name
+  published       Boolean   @default(false)
+  featured        Boolean   @default(false)
+  read_time       Int?                  // Estimated minutes to read
+  
+  // Related tools (for articles like "Top 10 alternatives to...")
+  related_tools   Tool[]    @relation("BlogToolRelation")
+  
+  // Timestamps
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([published, publishedAt])
+  @@index([featured])
+}
+

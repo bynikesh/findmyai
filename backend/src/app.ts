@@ -58,6 +58,7 @@ export const buildApp = () => {
     app.register(import('./routes/ai-seo'), { prefix: '/api' });
     app.register(import('./routes/import'), { prefix: '/api' });
     app.register(import('./routes/jobsTasks'), { prefix: '/api' });
+    app.register(import('./routes/blog'), { prefix: '/api' });
 
     // Static Files (Priority 3)
     app.register(fastifyStatic, {
