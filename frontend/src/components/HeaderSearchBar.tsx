@@ -49,7 +49,7 @@ export default function HeaderSearchBar() {
         return () => clearTimeout(debounceTimer);
     }, [query]);
 
-    const handleSelect = (item: Suggestion) => {
+    const handleSelect = (item: Suggestion | null) => {
         if (item) {
             navigate(`/tools/${item.slug}`);
             setQuery('');
@@ -61,11 +61,11 @@ export default function HeaderSearchBar() {
             navigate(`/tools?search=${encodeURIComponent(query)}`);
             setQuery('');
         }
-    }
+    };
 
     return (
         <div className="w-full max-w-lg lg:max-w-xs">
-            <Combobox value={null} onChange={handleSelect}>
+            <Combobox value={null as Suggestion | null} onChange={handleSelect}>
                 <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
