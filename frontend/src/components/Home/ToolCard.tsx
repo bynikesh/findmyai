@@ -1,106 +1,133 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HeartIcon, EyeIcon } from '@heroicons/react/24/solid';
-import { HeartIcon as HeartIconOutline, FolderIcon } from '@heroicons/react/24/outline';
+import { BookmarkIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
+import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 
 export interface Tool {
     id: number;
     name: string;
     slug: string;
     description: string;
+    short_description?: string;
     logo_url: string;
-    image_url?: string; // Optional large cover image
-    categories: string[];
-    likes: number;
-    views: string;
-    author?: {
-        name: string;
-        avatar: string;
-        pro?: boolean;
-    };
+    categories: string[] | { name: string; slug: string }[];
+    pricing?: string;
+    pricing_type?: string;
+    verified?: boolean;
 }
 
 interface ToolCardProps {
     tool: Tool;
 }
 
-export default function ToolCard({ tool }: ToolCardProps) {
-    const [isHovered, setIsHovered] = useState(false);
-    const [isLiked, setIsLiked] = useState(false);
+// Get pricing badge color based on type
+const getPricingBadge = (pricingType?: string, pricing?: string) => {
+    const type = (pricingType || pricing || 'free').toLowerCase();
 
-    // Fallback image if no specific cover image
-    const coverImage = tool.image_url || `https://source.unsplash.com/random/800x600/?${tool.categories[0] || 'technology'},ai`;
+    if (type.includes('free') && !type.includes('freemium')) {
+        return { label: 'Free', className: 'bg-emerald-100 text-emerald-700' };
+    }
+    if (type.includes('freemium')) {
+        return { label: 'Freemium', className: 'bg-blue-100 text-blue-700' };
+    }
+    if (type.includes('paid') || type.includes('$')) {
+        return { label: 'Paid', className: 'bg-purple-100 text-purple-700' };
+    }
+    if (type.includes('open source')) {
+        return { label: 'Open Source', className: 'bg-orange-100 text-orange-700' };
+    }
+    return { label: pricing || 'Free', className: 'bg-gray-100 text-gray-700' };
+};
+
+// Get category name (handles both string[] and object[] formats)
+const getCategoryName = (categories: string[] | { name: string; slug: string }[]): string | undefined => {
+    if (!categories || categories.length === 0) return undefined;
+    const first = categories[0];
+    if (typeof first === 'string') return first;
+    return first.name;
+};
+
+export default function ToolCard({ tool }: ToolCardProps) {
+    const [isSaved, setIsSaved] = useState(false);
+    const pricingBadge = getPricingBadge(tool.pricing_type, tool.pricing);
+    const displayDescription = tool.short_description || tool.description;
+    const categoryName = getCategoryName(tool.categories);
+
+    const handleSaveClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsSaved(!isSaved);
+    };
 
     return (
-        <div
-            className="group flex flex-col gap-3"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            {/* Image Container */}
-            <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
-                <img
-                    src={coverImage}
-                    alt={tool.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                />
-
-                {/* Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/60 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-                    <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
-                        <div className="text-white">
-                            <h3 className="font-bold text-lg truncate">{tool.name}</h3>
-                        </div>
-
-                        <div className="flex gap-2">
-                            <button className="p-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors shadow-lg">
-                                <FolderIcon className="w-5 h-5" />
-                            </button>
-                            <button
-                                className={`p-2 rounded-lg transition-colors shadow-lg ${isLiked ? 'bg-pink-500 text-white' : 'bg-white text-gray-900 hover:bg-gray-100'}`}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    setIsLiked(!isLiked);
+        <div className="group relative bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-200 overflow-hidden">
+            <Link to={`/tools/${tool.slug}`} className="block p-5">
+                {/* Top Row: Logo + Save Button */}
+                <div className="flex items-start justify-between mb-4">
+                    {/* Logo */}
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 shadow-sm">
+                        {tool.logo_url ? (
+                            <img
+                                src={tool.logo_url}
+                                alt={tool.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
                                 }}
-                            >
-                                <HeartIconOutline className="w-5 h-5" />
-                            </button>
-                        </div>
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-bold text-xl">
+                                {tool.name[0]?.toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Save/Bookmark Button */}
+                    <button
+                        onClick={handleSaveClick}
+                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        aria-label={isSaved ? 'Remove from saved' : 'Save tool'}
+                    >
+                        {isSaved ? (
+                            <BookmarkSolidIcon className="w-5 h-5 text-emerald-500" />
+                        ) : (
+                            <BookmarkIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
+                        )}
+                    </button>
+                </div>
+
+                {/* Tool Name + Verified Badge */}
+                <div className="mb-2">
+                    <div className="flex items-center gap-1.5">
+                        <h3 className="font-semibold text-gray-900 text-base group-hover:text-emerald-600 transition-colors truncate">
+                            {tool.name}
+                        </h3>
+                        {tool.verified && (
+                            <CheckBadgeIcon className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                        )}
                     </div>
                 </div>
 
-                {/* Link to details */}
-                <Link to={`/tools/${tool.slug}`} className="absolute inset-0 z-0" aria-label={`View ${tool.name}`} />
-            </div>
+                {/* Description - 2 lines truncated */}
+                <p className="text-sm text-gray-600 line-clamp-2 mb-4 leading-relaxed min-h-[2.5rem]">
+                    {displayDescription}
+                </p>
 
-            {/* Meta Info */}
-            <div className="flex items-center justify-between px-0.5">
-                <div className="flex items-center gap-2">
-                    <img
-                        src={tool.author?.avatar || tool.logo_url}
-                        alt={tool.author?.name || tool.name}
-                        className="w-6 h-6 rounded-full object-cover border border-gray-100"
-                    />
-                    <span className="text-sm font-medium text-gray-900 hover:underline cursor-pointer">
-                        {tool.author?.name || tool.name}
+                {/* Footer: Pricing Badge + Category Badge */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    {/* Pricing Badge */}
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${pricingBadge.className}`}>
+                        {pricingBadge.label}
                     </span>
-                    {tool.author?.pro && (
-                        <span className="bg-gray-200 text-gray-600 text-[10px] font-bold px-1 rounded">PRO</span>
+
+                    {/* Category Badge */}
+                    {categoryName && (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            {categoryName}
+                        </span>
                     )}
                 </div>
-
-                <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
-                    <div className="flex items-center gap-1 hover:text-pink-500 transition-colors cursor-pointer">
-                        <HeartIcon className={`w-4 h-4 ${isLiked ? 'text-pink-500' : 'text-gray-300'}`} />
-                        <span>{tool.likes}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <EyeIcon className="w-4 h-4 text-gray-300" />
-                        <span>{tool.views}</span>
-                    </div>
-                </div>
-            </div>
+            </Link>
         </div>
     );
 }

@@ -1,53 +1,67 @@
-import { useEffect, useState } from 'react'
-import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
-import ToolCard from '../components/ToolCard'
-import { useSearchParams } from 'react-router-dom'
-import { trackCategoryView } from '../lib/analytics'
+import { useEffect, useState } from 'react';
+import { MagnifyingGlassIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import ToolCard from '../components/ToolCard';
+import { useSearchParams } from 'react-router-dom';
+import { trackCategoryView } from '../lib/analytics';
 import { apiUrl } from 'lib/constants';
 
 interface Tool {
-    id: number
-    name: string
-    slug: string
-    description: string
-    pricing: string
-    categories: { name: string }[]
-    logo_url?: string | null
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    short_description?: string;
+    pricing: string;
+    pricing_type?: string;
+    categories: { name: string; slug: string }[];
+    logo_url?: string | null;
+    verified?: boolean;
 }
 
 interface Category {
-    id: number
-    name: string
-    slug: string
+    id: number;
+    name: string;
+    slug: string;
 }
 
 // Loading Skeleton Component
 function ToolCardSkeleton() {
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
-            <div className="w-16 h-16 bg-gray-200 rounded-lg mb-4"></div>
-            <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+            <div className="flex justify-between mb-4">
+                <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
+                <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+            </div>
+            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-1"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
+            <div className="flex gap-2">
+                <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+            </div>
         </div>
-    )
+    );
 }
 
 export default function ToolList() {
-    const [searchParams, setSearchParams] = useSearchParams()
-    const [tools, setTools] = useState<Tool[]>([])
-    const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading] = useState(true)
-    const [meta, setMeta] = useState<any>(null)
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [tools, setTools] = useState<Tool[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [meta, setMeta] = useState<any>(null);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     // Filter states
-    const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
-    const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
-    const [selectedPricing, setSelectedPricing] = useState(searchParams.get('pricing') || '')
-    const [selectedSort, setSelectedSort] = useState(searchParams.get('sort') || '')
-    const [currentPage, setCurrentPage] = useState(1)
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+    const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+    const [selectedPricing, setSelectedPricing] = useState<string[]>(
+        searchParams.get('pricing')?.split(',').filter(Boolean) || []
+    );
+    const [verifiedOnly, setVerifiedOnly] = useState(searchParams.get('verified') === 'true');
+    const [selectedSort, setSelectedSort] = useState(searchParams.get('sort') || 'newest');
+    const [currentPage, setCurrentPage] = useState(1);
 
-    // Fetch categories (used for filter dropdown)
+    // Fetch categories
     useEffect(() => {
         fetch(`${apiUrl}/api/categories`)
             .then(res => (res.ok ? res.json() : []))
@@ -55,14 +69,13 @@ export default function ToolList() {
             .catch(() => setCategories([]));
     }, []);
 
-    // Fetch selected category description (if any)
+    // Category info for header
     const [categoryInfo, setCategoryInfo] = useState<{ name: string; seo_description?: string | null } | null>(null);
     useEffect(() => {
         if (!selectedCategory) {
             setCategoryInfo(null);
             return;
         }
-        // Backend does not have a single-category endpoint, so fetch all and find the match
         fetch(`${apiUrl}/api/categories`)
             .then(res => (res.ok ? res.json() : []))
             .then((cats: any[]) => {
@@ -70,8 +83,9 @@ export default function ToolList() {
                 if (match) {
                     setCategoryInfo({ name: match.name, seo_description: match.seo_description });
                     trackCategoryView(match.id);
+                } else {
+                    setCategoryInfo(null);
                 }
-                else setCategoryInfo(null);
             })
             .catch(() => setCategoryInfo(null));
     }, [selectedCategory]);
@@ -79,199 +93,331 @@ export default function ToolList() {
     // Fetch tools
     useEffect(() => {
         const fetchTools = async () => {
-            setLoading(true)
+            setLoading(true);
             try {
-                const params = new URLSearchParams()
+                const params = new URLSearchParams();
+                if (searchQuery) params.set('search', searchQuery);
+                if (selectedCategory) params.set('category', selectedCategory);
+                if (selectedPricing.length === 1) params.set('pricing', selectedPricing[0]);
+                if (selectedSort) params.set('sort', selectedSort);
+                params.set('page', currentPage.toString());
+                params.set('perPage', '24');
 
-                if (searchQuery) params.set('search', searchQuery)
-                if (selectedCategory) params.set('category', selectedCategory)
-                if (selectedPricing) params.set('pricing', selectedPricing)
-                if (selectedSort) params.set('sort', selectedSort)
-                params.set('page', currentPage.toString())
-                params.set('perPage', '20')
+                const res = await fetch(`${apiUrl}/api/tools?${params}`);
+                if (!res.ok) throw new Error('Failed to fetch tools');
+                const data = await res.json();
 
-                const res = await fetch(`${apiUrl}/api/tools?${params}`)
-                if (!res.ok) throw new Error('Failed to fetch tools')
-                const data = await res.json()
+                let filteredTools = data.data || [];
 
-                // Ensure we always set the data, even if it's empty
-                if (Array.isArray(data.data)) {
-                    setTools(prev => currentPage === 1 ? data.data : [...prev, ...data.data])
-                    setMeta(data.meta)
-                } else {
-                    console.error('Invalid data format received:', data)
-                    setTools([])
-                    setMeta(null)
+                // Client-side filter for verified (if backend doesn't support it)
+                if (verifiedOnly) {
+                    filteredTools = filteredTools.filter((t: Tool) => t.verified);
                 }
-            } catch (error) {
-                console.error('Error fetching tools:', error)
-                // Don't set empty array on error - keep existing tools or show error state
-                setTools([])
-                setMeta(null)
-            } finally {
-                setLoading(false)
-            }
-        }
 
-        fetchTools()
-    }, [searchQuery, selectedCategory, selectedPricing, selectedSort, currentPage])
+                // Client-side filter for multiple pricing types
+                if (selectedPricing.length > 1) {
+                    filteredTools = filteredTools.filter((t: Tool) => {
+                        const pricingType = (t.pricing_type || t.pricing || '').toLowerCase();
+                        return selectedPricing.some(p => pricingType.includes(p.toLowerCase()));
+                    });
+                }
+
+                setTools(prev => currentPage === 1 ? filteredTools : [...prev, ...filteredTools]);
+                setMeta(data.meta);
+            } catch (error) {
+                console.error('Error fetching tools:', error);
+                setTools([]);
+                setMeta(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTools();
+    }, [searchQuery, selectedCategory, selectedPricing, verifiedOnly, selectedSort, currentPage]);
 
     // Update URL params
     useEffect(() => {
-        const params = new URLSearchParams()
-        if (searchQuery) params.set('search', searchQuery)
-        if (selectedCategory) params.set('category', selectedCategory)
-        if (selectedPricing) params.set('pricing', selectedPricing)
-        if (selectedSort) params.set('sort', selectedSort)
-        setSearchParams(params)
-    }, [searchQuery, selectedCategory, selectedPricing, selectedSort, setSearchParams])
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('search', searchQuery);
+        if (selectedCategory) params.set('category', selectedCategory);
+        if (selectedPricing.length) params.set('pricing', selectedPricing.join(','));
+        if (verifiedOnly) params.set('verified', 'true');
+        if (selectedSort && selectedSort !== 'newest') params.set('sort', selectedSort);
+        setSearchParams(params);
+    }, [searchQuery, selectedCategory, selectedPricing, verifiedOnly, selectedSort, setSearchParams]);
 
     const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault()
-        setCurrentPage(1)
-    }
+        e.preventDefault();
+        setCurrentPage(1);
+    };
 
-    const handleFilterChange = () => {
-        setCurrentPage(1)
-    }
+    const handlePricingChange = (value: string) => {
+        setCurrentPage(1);
+        setSelectedPricing(prev =>
+            prev.includes(value) ? prev.filter(p => p !== value) : [...prev, value]
+        );
+    };
+
+    const handleCategoryClick = (slug: string) => {
+        setCurrentPage(1);
+        setSelectedCategory(slug === selectedCategory ? '' : slug);
+    };
+
+    const clearAllFilters = () => {
+        setSearchQuery('');
+        setSelectedCategory('');
+        setSelectedPricing([]);
+        setVerifiedOnly(false);
+        setSelectedSort('newest');
+        setCurrentPage(1);
+    };
+
+    const hasActiveFilters = searchQuery || selectedCategory || selectedPricing.length > 0 || verifiedOnly;
+
+    // Sidebar Filter Component
+    const FilterSidebar = ({ mobile = false }: { mobile?: boolean }) => (
+        <div className={mobile ? '' : 'sticky top-24'}>
+            {/* Pricing Filter */}
+            <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Pricing</h3>
+                <div className="space-y-2">
+                    {['Free', 'Freemium', 'Paid'].map((pricing) => (
+                        <label key={pricing} className="flex items-center gap-3 cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                checked={selectedPricing.includes(pricing.toLowerCase())}
+                                onChange={() => handlePricingChange(pricing.toLowerCase())}
+                                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                            />
+                            <span className="text-sm text-gray-700 group-hover:text-gray-900">{pricing}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            {/* Verified Toggle */}
+            <div className="mb-6">
+                <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-sm font-semibold text-gray-900">Verified Only</span>
+                    <button
+                        role="switch"
+                        aria-checked={verifiedOnly}
+                        onClick={() => { setVerifiedOnly(!verifiedOnly); setCurrentPage(1); }}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${verifiedOnly ? 'bg-emerald-500' : 'bg-gray-200'
+                            }`}
+                    >
+                        <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${verifiedOnly ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                        />
+                    </button>
+                </label>
+                <p className="text-xs text-gray-500 mt-1">Show only verified tools</p>
+            </div>
+
+            {/* Categories */}
+            <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Categories</h3>
+                <div className="space-y-1 max-h-64 overflow-y-auto">
+                    {categories.map((cat) => (
+                        <button
+                            key={cat.id}
+                            onClick={() => handleCategoryClick(cat.slug)}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === cat.slug
+                                    ? 'bg-emerald-100 text-emerald-700 font-medium'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                        >
+                            {cat.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Clear Filters */}
+            {hasActiveFilters && (
+                <button
+                    onClick={clearAllFilters}
+                    className="w-full py-2 text-sm text-red-600 hover:text-red-700 font-medium"
+                >
+                    Clear all filters
+                </button>
+            )}
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Category Header (if a category is selected) */}
+            {/* Category Header */}
             {categoryInfo && (
-                <div className="bg-white border-b border-gray-200 py-8">
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-8">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{categoryInfo.name}</h1>
+                        <h1 className="text-3xl font-bold mb-2">{categoryInfo.name}</h1>
                         {categoryInfo.seo_description && (
-                            <p className="text-lg text-gray-600">{categoryInfo.seo_description}</p>
+                            <p className="text-emerald-100 text-lg">{categoryInfo.seo_description}</p>
                         )}
                     </div>
                 </div>
             )}
-            {/* Header Section */}
-            <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <div className="text-center mb-8">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-3">
-                            Explore AI Tools
-                        </h1>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                            Discover the best AI tools to supercharge your workflow. Filter by category, pricing, and more.
-                        </p>
-                    </div>
 
-                    {/* Search Bar */}
-                    <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8">
-                        <div className="relative">
-                            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search for AI tools..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3.5 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent shadow-sm"
-                            />
-                        </div>
-                    </form>
-
-                    {/* Filters Row */}
-                    <div className="flex flex-wrap items-center gap-3">
-                        {/* Category Filter */}
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => { setSelectedCategory(e.target.value); handleFilterChange(); }}
-                            className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 shadow-sm"
+            {/* Page Header with Search */}
+            <div className="bg-white border-b border-gray-200 sticky top-16 z-30">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex items-center gap-4">
+                        {/* Mobile Filter Toggle */}
+                        <button
+                            onClick={() => setShowMobileFilters(true)}
+                            className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
-                            <option value="">All Categories</option>
-                            {categories.map(cat => (
-                                <option key={cat.id} value={cat.slug}>{cat.name}</option>
-                            ))}
-                        </select>
+                            <FunnelIcon className="w-5 h-5" />
+                            Filters
+                            {hasActiveFilters && (
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            )}
+                        </button>
 
-                        {/* Pricing Filter */}
-                        <select
-                            value={selectedPricing}
-                            onChange={(e) => { setSelectedPricing(e.target.value); handleFilterChange(); }}
-                            className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 shadow-sm"
-                        >
-                            <option value="">All Pricing</option>
-                            <option value="free">Free</option>
-                            <option value="freemium">Freemium</option>
-                            <option value="paid">Paid</option>
-                        </select>
+                        {/* Search Bar */}
+                        <form onSubmit={handleSearch} className="flex-1 max-w-2xl">
+                            <div className="relative">
+                                <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search AI tools..."
+                                    value={searchQuery}
+                                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                                    className="w-full pl-12 pr-4 py-2.5 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                />
+                            </div>
+                        </form>
 
-                        {/* Sort Dropdown - Right Aligned */}
+                        {/* Sort Dropdown */}
                         <select
                             value={selectedSort}
-                            onChange={(e) => { setSelectedSort(e.target.value); handleFilterChange(); }}
-                            className="ml-auto px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 shadow-sm"
+                            onChange={(e) => { setSelectedSort(e.target.value); setCurrentPage(1); }}
+                            className="hidden sm:block px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         >
-                            <option value="">Default</option>
-                            <option value="popular">Popular</option>
                             <option value="newest">Newest</option>
+                            <option value="popular">Popular</option>
                         </select>
+                    </div>
+
+                    {/* Active Filters Pills */}
+                    {hasActiveFilters && (
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
+                            {selectedCategory && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                    {categoryInfo?.name || selectedCategory}
+                                    <button onClick={() => setSelectedCategory('')}>
+                                        <XMarkIcon className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            )}
+                            {selectedPricing.map(p => (
+                                <span key={p} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 capitalize">
+                                    {p}
+                                    <button onClick={() => handlePricingChange(p)}>
+                                        <XMarkIcon className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            ))}
+                            {verifiedOnly && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                                    Verified
+                                    <button onClick={() => setVerifiedOnly(false)}>
+                                        <XMarkIcon className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Main Content with Sidebar */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex gap-8">
+                    {/* Desktop Sidebar */}
+                    <aside className="hidden lg:block w-64 flex-shrink-0">
+                        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+                            <FilterSidebar />
+                        </div>
+                    </aside>
+
+                    {/* Main Content */}
+                    <div className="flex-1 min-w-0">
+                        {/* Results Count */}
+                        {!loading && meta && (
+                            <div className="mb-4 text-sm text-gray-600">
+                                Showing {tools.length} of {meta.total} tools
+                            </div>
+                        )}
+
+                        {/* Tools Grid */}
+                        {tools.length === 0 && !loading ? (
+                            <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                                    <FunnelIcon className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No tools found</h3>
+                                <p className="text-gray-600 mb-4">
+                                    Try adjusting your filters or search query.
+                                </p>
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                                >
+                                    Clear filters
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                                    {tools.map((tool) => (
+                                        <ToolCard key={tool.id} tool={tool} />
+                                    ))}
+                                    {loading && [...Array(6)].map((_, i) => (
+                                        <ToolCardSkeleton key={i} />
+                                    ))}
+                                </div>
+
+                                {/* Load More */}
+                                {!loading && meta && currentPage < meta.totalPages && (
+                                    <div className="mt-10 text-center">
+                                        <button
+                                            onClick={() => setCurrentPage(prev => prev + 1)}
+                                            className="px-8 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm"
+                                        >
+                                            Load More Tools
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* Results Count */}
-                {!loading && meta && (
-                    <div className="mb-6 text-sm text-gray-600">
-                        Showing {tools.length} of {meta.total} tools
-                    </div>
-                )}
-
-                {/* Tools Grid & Empty State */}
-                {tools.length === 0 && !loading ? (
-                    /* Empty State */
-                    <div className="text-center py-16">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
-                            <FunnelIcon className="w-10 h-10 text-gray-400" />
+            {/* Mobile Filter Drawer */}
+            {showMobileFilters && (
+                <div className="fixed inset-0 z-50 lg:hidden">
+                    <div className="fixed inset-0 bg-black/50" onClick={() => setShowMobileFilters(false)} />
+                    <div className="fixed inset-y-0 left-0 w-80 max-w-full bg-white shadow-xl">
+                        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+                            <button
+                                onClick={() => setShowMobileFilters(false)}
+                                className="p-2 rounded-lg hover:bg-gray-100"
+                            >
+                                <XMarkIcon className="w-5 h-5" />
+                            </button>
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No tools found</h3>
-                        <p className="text-gray-600 mb-6">
-                            Try adjusting your filters or search query to find what you're looking for.
-                        </p>
-                        <button
-                            onClick={() => {
-                                setSearchQuery('')
-                                setSelectedCategory('')
-                                setSelectedPricing('')
-                                setSelectedSort('')
-                                setCurrentPage(1)
-                            }}
-                            className="px-6 py-2.5 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors shadow-sm"
-                        >
-                            Clear all filters
-                        </button>
-                    </div>
-                ) : (
-                    <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {tools.map((tool) => (
-                                <ToolCard key={tool.id} tool={tool} />
-                            ))}
-                            {loading && [...Array(8)].map((_, i) => (
-                                <ToolCardSkeleton key={i} />
-                            ))}
+                        <div className="p-4 overflow-y-auto h-full pb-24">
+                            <FilterSidebar mobile />
                         </div>
-
-                        {/* Load More Button */}
-                        {!loading && meta && currentPage < meta.totalPages && (
-                            <div className="mt-12 text-center">
-                                <button
-                                    onClick={() => setCurrentPage(prev => prev + 1)}
-                                    className="px-8 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm"
-                                >
-                                    Load More Tools
-                                </button>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
+                    </div>
+                </div>
+            )}
         </div>
-    )
+    );
 }
