@@ -4,7 +4,7 @@ import { EyeIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 interface QuickStatsProps {
     average_rating?: number;
     review_count: number;
-    pricing_type?: string;
+    pricing_type?: string[] | string;
     primary_model?: string;
     view_count: number;
 }
@@ -16,6 +16,36 @@ export default function QuickStats({
     primary_model,
     view_count,
 }: QuickStatsProps) {
+    // Helper to render pricing badges
+    const renderPricingBadges = () => {
+        if (!pricing_type) return null;
+
+        const types = Array.isArray(pricing_type) ? pricing_type : [pricing_type];
+
+        return (
+            <div className="flex items-center flex-wrap gap-2">
+                {types.map((type, idx) => {
+                    let colorClass = 'bg-gray-100 text-gray-800';
+                    const lower = type.toLowerCase();
+                    if (lower.includes('free')) colorClass = 'bg-green-100 text-green-800';
+                    else if (lower.includes('freemium')) colorClass = 'bg-blue-100 text-blue-800';
+                    else if (lower.includes('paid')) colorClass = 'bg-purple-100 text-purple-800';
+                    else if (lower.includes('trial')) colorClass = 'bg-teal-100 text-teal-800';
+                    else if (lower.includes('api')) colorClass = 'bg-indigo-100 text-indigo-800';
+
+                    return (
+                        <span
+                            key={idx}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}
+                        >
+                            {type}
+                        </span>
+                    );
+                })}
+            </div>
+        );
+    };
+
     return (
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-y border-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -27,8 +57,8 @@ export default function QuickStats({
                                 <StarIcon
                                     key={i}
                                     className={`h-5 w-5 ${i < Math.floor(average_rating || 0)
-                                            ? 'text-yellow-400'
-                                            : 'text-gray-300'
+                                        ? 'text-yellow-400'
+                                        : 'text-gray-300'
                                         }`}
                                 />
                             ))}
@@ -51,16 +81,7 @@ export default function QuickStats({
                     {pricing_type && (
                         <div className="flex items-center space-x-2">
                             <div className="flex-shrink-0">
-                                <span
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${pricing_type === 'Free'
-                                            ? 'bg-green-100 text-green-800'
-                                            : pricing_type === 'Freemium'
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-purple-100 text-purple-800'
-                                        }`}
-                                >
-                                    {pricing_type}
-                                </span>
+                                {renderPricingBadges()}
                             </div>
                         </div>
                     )}

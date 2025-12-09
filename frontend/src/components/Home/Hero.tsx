@@ -1,86 +1,77 @@
 import { useNavigate } from 'react-router-dom';
 
-const POPULAR_TAGS = ['Writing', 'Image Generator', 'Video', 'Code Assistant', 'Marketing'];
+const WHY_FINDMYAI = [
+    { icon: '🎯', text: 'Handpicked & Verified — No spam, no dead links' },
+    { icon: '⚡', text: 'Smart Matching — Find tools tailored to your needs' },
+    { icon: '💰', text: 'Transparent Pricing — Know costs upfront' },
+    { icon: '🔄', text: 'Always Fresh — Updated daily with new AI tools' },
+];
 
 export default function Hero() {
     const navigate = useNavigate();
 
     return (
-        <section className="relative overflow-hidden bg-gray-900 text-white min-h-[600px] flex items-center">
-            {/* Background Effects */}
-            <div className="absolute inset-0 z-0">
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/50 via-gray-900/80 to-gray-900 z-10" />
-
-                {/* Animated Glowing Orbs/Grid - CSS only simulation of "AI Workflows" */}
-                {/* We use a complex repeating gradient to simulate a grid and some absolute positioned elements for "nodes" */}
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-blue-600/20 blur-[100px] animate-pulse-slow" />
-                    <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-purple-600/20 blur-[100px] animate-pulse-slow delay-1000" />
-                    <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[60%] rounded-full bg-pink-600/20 blur-[100px] animate-pulse-slow delay-2000" />
-                </div>
-
-                {/* Tech Grid Pattern */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" />
-
-            </div>
-
-            <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20 pb-20">
-                {/* Badge/Pill */}
-                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-full text-sm font-medium mb-8 animate-fade-in-up hover:bg-white/20 transition-colors cursor-default">
+        <section className="relative bg-white text-center pt-16 pb-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 bg-pink-50 text-pink-600 px-4 py-1.5 rounded-full text-sm font-medium mb-8">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
                     </span>
-                    <span className="text-gray-100">Over 3,000+ AI Tools Indexed</span>
+                    Over 3,000+ AI Tools Indexed
                 </div>
 
-                {/* Headline */}
-                <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-8 font-display">
-                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 drop-shadow-2xl">
-                        AI Workflows
-                    </span>
-                    <span className="block text-white mt-2">
-                        supercharge your productivity
+                {/* Main Headline */}
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 tracking-tight mb-6">
+                    Where the World&apos;s Best <br className="hidden sm:block" />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-600">
+                        AI Tools Are Handpicked for You
                     </span>
                 </h1>
 
-                {/* Subheadline */}
-                <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed relative">
-                    Discover, compare, and integrate the world's most powerful AI tools. <br className="hidden sm:block" />
-                    From coding assistants to image generators, find exactly what you need.
-                </p>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                {/* Primary CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                     <button
                         onClick={() => navigate('/tools')}
-                        className="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        className="group px-8 py-4 bg-gradient-to-r from-pink-500 to-violet-600 text-white rounded-full font-bold text-lg hover:from-pink-600 hover:to-violet-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
                     >
-                        Explore Tools
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        Find a Tool
+                        <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                     </button>
                     <button
-                        onClick={() => navigate('/submit')}
-                        className="px-8 py-4 bg-transparent border border-white/30 text-white rounded-full font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-sm"
+                        onClick={() => navigate('/quiz')}
+                        className="group px-8 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-full font-bold text-lg hover:border-pink-300 hover:bg-pink-50 transition-all flex items-center justify-center gap-3"
                     >
-                        Submit Tool
+                        <svg className="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        Help Me Find
+                        <span className="text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full">Quiz</span>
                     </button>
                 </div>
 
-                {/* Popular Tags */}
-                <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-3 text-sm text-gray-400">
-                    <span className="uppercase tracking-wider text-xs font-semibold mr-2">Trending:</span>
-                    {POPULAR_TAGS.map((tag) => (
-                        <button
-                            key={tag}
-                            onClick={() => navigate(`/tools?search=${encodeURIComponent(tag)}`)}
-                            className="bg-white/5 border border-white/10 hover:border-blue-400/50 hover:bg-blue-600/10 text-gray-300 hover:text-blue-300 px-4 py-1.5 rounded-full transition-all backdrop-blur-md"
-                        >
-                            {tag}
-                        </button>
-                    ))}
+                {/* Why FindMyAI Section */}
+                <div className="mt-8 mb-4">
+                    <p className="text-sm uppercase tracking-widest text-gray-500 mb-6 font-semibold">
+                        Why FindMyAI vs other directories?
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                        {WHY_FINDMYAI.map((item, index) => (
+                            <div
+                                key={index}
+                                className="group bg-gray-50 border border-gray-100 rounded-xl px-4 py-4 hover:bg-white hover:border-pink-200 hover:shadow-md transition-all cursor-default"
+                            >
+                                <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">{item.icon}</span>
+                                <p className="text-sm text-gray-600 leading-snug">{item.text}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>

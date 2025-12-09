@@ -10,7 +10,7 @@ export default function Submit() {
         name: '',
         website: '',
         description: '',
-        pricing: 'Free'
+        pricing_type: ['Free'] as string[]
     })
     const [errors, setErrors] = useState<ValidationErrors>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -48,7 +48,7 @@ export default function Submit() {
                     trackSubmission(data.id)
                 }
                 showSuccess('Submission received!', 'We\'ll review your tool and get back to you soon')
-                setFormData({ name: '', website: '', description: '', pricing: 'Free' })
+                setFormData({ name: '', website: '', description: '', pricing_type: ['Free'] })
             } else {
                 const error = await res.json()
                 showError('Submission failed', error.message || 'Please try again')
@@ -67,6 +67,17 @@ export default function Submit() {
         if (errors[field]) {
             setErrors({ ...errors, [field]: '' })
         }
+    }
+
+    const handlePricingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { value, checked } = e.target;
+        setFormData(prev => {
+            if (checked) {
+                return { ...prev, pricing_type: [...prev.pricing_type, value] };
+            } else {
+                return { ...prev, pricing_type: prev.pricing_type.filter(t => t !== value) };
+            }
+        });
     }
 
     return (
@@ -115,20 +126,27 @@ export default function Submit() {
                 </div>
 
                 <div>
-                    <label htmlFor="pricing" className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                         Pricing Model
                     </label>
-                    <select
-                        name="pricing"
-                        id="pricing"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        value={formData.pricing}
-                        onChange={e => setFormData({ ...formData, pricing: e.target.value })}
-                    >
-                        <option>Free</option>
-                        <option>Freemium</option>
-                        <option>Paid</option>
-                    </select>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {['Free', 'Freemium', 'Paid', 'Trial', 'API', 'Lifetime'].map((type) => (
+                            <div key={type} className="flex items-center">
+                                <input
+                                    id={`pricing-${type}`}
+                                    name="pricing_type"
+                                    type="checkbox"
+                                    value={type}
+                                    checked={formData.pricing_type.includes(type)}
+                                    onChange={handlePricingChange}
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor={`pricing-${type}`} className="ml-2 text-sm text-gray-700">
+                                    {type}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 <div>

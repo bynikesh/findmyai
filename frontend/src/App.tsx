@@ -11,6 +11,7 @@ import TaskDetail from './pages/TaskDetail'
 import BlogList from './pages/BlogList'
 import BlogDetail from './pages/BlogDetail'
 import Submit from './pages/Submit'
+import Quiz from './pages/Quiz'
 import Login from './pages/Login'
 import ChatWidget from './components/ChatWidget'
 import AdminGuard from './components/AdminGuard'
@@ -19,6 +20,8 @@ import SubmissionReview from './pages/admin/SubmissionReview'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AnalyticsDashboard from './pages/admin/AnalyticsDashboard'
 import ToolsManagement from './pages/admin/ToolsManagement'
+import CreateTool from './pages/admin/CreateTool'
+import EditTool from './pages/admin/EditTool'
 import CategoriesManagement from './pages/admin/CategoriesManagement'
 import JobsManagement from './pages/admin/JobsManagement'
 import TasksManagement from './pages/admin/TasksManagement'
@@ -52,6 +55,7 @@ function App() {
                         <Route path="/blog" element={<BlogList />} />
                         <Route path="/blog/:slug" element={<BlogDetail />} />
                         <Route path="/submit" element={<Submit />} />
+                        <Route path="/quiz" element={<Quiz />} />
                         <Route path="/login" element={<Login />} />
 
                         {/* Error Routes */}
@@ -61,6 +65,8 @@ function App() {
                         {/* Admin Routes */}
                         <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
                         <Route path="/admin/tools" element={<AdminGuard><ToolsManagement /></AdminGuard>} />
+                        <Route path="/admin/tools/new" element={<AdminGuard><CreateTool /></AdminGuard>} />
+                        <Route path="/admin/tools/:id/edit" element={<AdminGuard><EditTool /></AdminGuard>} />
                         <Route path="/admin/import-tools" element={<AdminGuard><ImportTools /></AdminGuard>} />
                         <Route path="/admin/categories" element={<AdminGuard><CategoriesManagement /></AdminGuard>} />
                         <Route path="/admin/jobs" element={<AdminGuard><JobsManagement /></AdminGuard>} />

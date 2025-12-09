@@ -49,7 +49,7 @@ model Tool {
   ideal_for    String?
   
   // Pricing & Access
-  pricing_type String?    // Free, Freemium, Paid, One-time, Open Source
+  pricing_type String[]   // Free, Freemium, Paid, One-time, Open Source
   pricing      String?
   price_range  String?
   free_trial   Boolean    @default(false)

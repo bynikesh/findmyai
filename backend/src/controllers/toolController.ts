@@ -51,8 +51,12 @@ export const getTools = async (
     }
 
     if (pricing) {
-        // Case-insensitive check for pricing type
-        where.pricing_type = { equals: pricing, mode: 'insensitive' };
+        // Support multi-select pricing filter
+        const pricingList = pricing.split(',').map(p => {
+            // Basic capitalization strategy to match DB: "free" -> "Free"
+            return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
+        });
+        where.pricing_type = { hasSome: pricingList };
     }
 
     if (platform) {
@@ -166,6 +170,28 @@ export const getAdminTools = async (
     };
 };
 
+export const getAdminToolById = async (
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+) => {
+    const { id } = request.params;
+    const tool = await prisma.tool.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+            categories: true,
+            jobs: true,
+            tasks: true,
+            tags: true,
+        },
+    });
+
+    if (!tool) {
+        return reply.status(404).send({ message: 'Tool not found' });
+    }
+
+    return tool;
+};
+
 export const getTrendingTools = async (
     request: FastifyRequest,
     reply: FastifyReply,
@@ -229,7 +255,7 @@ export const createTool = async (
     reply: FastifyReply,
 ) => {
     const body = request.body as any;
-    const { categoryIds, ...toolData } = body;
+    const { categoryIds, jobIds, taskIds, ...toolData } = body;
 
     // Helper to split string to array
     const splitToArray = (val: any) => {
@@ -238,7 +264,7 @@ export const createTool = async (
         return [];
     };
 
-    const dataToSave = {
+    const dataToSave: any = {
         ...toolData,
         platforms: splitToArray(toolData.platforms),
         models_used: splitToArray(toolData.models_used),
@@ -246,12 +272,20 @@ export const createTool = async (
         categories: categoryIds?.length > 0 ? {
             connect: categoryIds.map((id: number) => ({ id }))
         } : undefined,
+        jobs: jobIds?.length > 0 ? {
+            connect: jobIds.map((id: number) => ({ id }))
+        } : undefined,
+        tasks: taskIds?.length > 0 ? {
+            connect: taskIds.map((id: number) => ({ id }))
+        } : undefined,
     };
 
     const tool = await prisma.tool.create({
         data: dataToSave,
         include: {
             categories: true,
+            jobs: true,
+            tasks: true,
             tags: true,
         },
     });
@@ -264,7 +298,7 @@ export const updateTool = async (
 ) => {
     const { id } = request.params;
     const body = request.body as any;
-    const { categoryIds, ...toolData } = body;
+    const { categoryIds, jobIds, taskIds, ...toolData } = body;
 
     // Helper to split string to array
     const splitToArray = (val: any) => {
@@ -279,6 +313,12 @@ export const updateTool = async (
             categories: categoryIds ? {
                 set: categoryIds.map((catId: number) => ({ id: catId }))
             } : undefined,
+            jobs: jobIds ? {
+                set: jobIds.map((jobId: number) => ({ id: jobId }))
+            } : undefined,
+            tasks: taskIds ? {
+                set: taskIds.map((taskId: number) => ({ id: taskId }))
+            } : undefined,
         };
 
         if (toolData.platforms !== undefined) dataToUpdate.platforms = splitToArray(toolData.platforms) || [];
@@ -290,6 +330,8 @@ export const updateTool = async (
             data: dataToUpdate,
             include: {
                 categories: true,
+                jobs: true,
+                tasks: true,
                 tags: true,
             },
         });

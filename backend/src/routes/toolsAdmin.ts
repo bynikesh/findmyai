@@ -25,6 +25,20 @@ export default async function (app: FastifyInstance) {
         toolController.getAdminTools as any,
     );
 
+    // GET /api/admin/tools/:id - Get tool by ID (admin)
+    fastify.get(
+        '/admin/tools/:id',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                params: z.object({
+                    id: z.string(),
+                }),
+            },
+        },
+        toolController.getAdminToolById as any,
+    );
+
     // PUT /api/admin/tools/:id - Update tool
     fastify.put(
         '/admin/tools/:id',
@@ -45,7 +59,7 @@ export default async function (app: FastifyInstance) {
                     pros: z.array(z.string()).optional(),
                     cons: z.array(z.string()).optional(),
                     ideal_for: z.string().optional(),
-                    pricing_type: z.string().optional(),
+                    pricing_type: z.array(z.string()).optional(),
                     pricing: z.string().optional(),
                     price_range: z.string().optional(),
                     free_trial: z.boolean().optional(),
@@ -75,6 +89,8 @@ export default async function (app: FastifyInstance) {
                     editors_choice: z.boolean().optional(),
                     still_active: z.boolean().optional(),
                     categoryIds: z.array(z.number()).optional(),
+                    jobIds: z.array(z.number()).optional(),
+                    taskIds: z.array(z.number()).optional(),
                 }),
             },
         },

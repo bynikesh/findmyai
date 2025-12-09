@@ -38,7 +38,7 @@ interface NormalizedTool {
     tags: string[];
     logo_url?: string;
     screenshots: string[];
-    pricing_type?: string;
+    pricing_type?: string[];
     pricing?: string;
     price_range?: string;
     free_trial?: boolean;
@@ -483,7 +483,7 @@ export async function normalizeTool(raw: RawTool, source: string): Promise<Norma
         tags: Array.isArray(raw.tags) ? raw.tags.slice(0, 7) : [],
         logo_url: raw.logo || '/default/tool.png',
         screenshots: raw.coverImage ? [raw.coverImage] : ['/default/cover.png'],
-        pricing_type: raw.priceType || 'Free',
+        pricing_type: raw.priceType ? [raw.priceType] : ['Free'],
         // Optional fields with sensible defaults
         pricing: raw.pricing || undefined,
         price_range: raw.priceRange || undefined,
@@ -580,7 +580,7 @@ Fields required:
 - cons: Array of 1-3 potential limitations.
 - ideal_for: Target audience (e.g., "Content Creators, Developers").
 - use_cases: Array of 3-5 specific use cases.
-- pricing_type: One of ["Free", "Freemium", "Paid", "One-time", "Open Source"].
+- pricing_type: Array of strings from ["Free", "Freemium", "Paid", "One-time", "Open Source", "Trial", "API", "Lifetime"].
 - pricing: Short text describing pricing (e.g., "$10/mo", "Free tier available").
 - price_range: Estimated range (e.g., "$0 - $50/mo").
 - free_trial: boolean.

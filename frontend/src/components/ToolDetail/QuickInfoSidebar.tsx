@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 interface QuickInfoSidebarProps {
-    pricing_type?: string;
+    pricing_type?: string[] | string;
     pricing?: string;
     price_range?: string;
     free_trial: boolean;
@@ -62,7 +62,7 @@ export default function QuickInfoSidebar({
                         <div className="ml-7 space-y-1">
                             {pricing_type && (
                                 <p className="text-sm text-gray-600">
-                                    <span className="font-medium">Type:</span> {pricing_type}
+                                    <span className="font-medium">Type:</span> {Array.isArray(pricing_type) ? pricing_type.join(', ') : pricing_type}
                                 </p>
                             )}
                             {price_range && (

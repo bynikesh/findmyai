@@ -10,7 +10,7 @@ interface Tool {
     description: string;
     short_description?: string;
     pricing?: string;
-    pricing_type?: string;
+    pricing_type?: string[];
     categories: { name: string; slug: string }[];
     logo_url?: string | null;
     verified?: boolean;
@@ -21,27 +21,39 @@ interface ToolCardProps {
 }
 
 // Get pricing badge color based on type
-const getPricingBadge = (pricingType?: string, pricing?: string) => {
-    const type = pricingType?.toLowerCase() || pricing?.toLowerCase() || 'free';
+const getPricingBadges = (pricingTypes?: string[], pricing?: string) => {
+    // If no types, fall back to pricing text or 'Free'
+    if (!pricingTypes || pricingTypes.length === 0) {
+        return [{ label: pricing || 'Free', className: 'bg-gray-100 text-gray-700' }];
+    }
 
-    if (type.includes('free') && !type.includes('freemium')) {
-        return { label: 'Free', className: 'bg-emerald-100 text-emerald-700' };
-    }
-    if (type.includes('freemium')) {
-        return { label: 'Freemium', className: 'bg-blue-100 text-blue-700' };
-    }
-    if (type.includes('paid') || type.includes('$')) {
-        return { label: 'Paid', className: 'bg-purple-100 text-purple-700' };
-    }
-    if (type.includes('open source')) {
-        return { label: 'Open Source', className: 'bg-orange-100 text-orange-700' };
-    }
-    return { label: pricing || 'Free', className: 'bg-gray-100 text-gray-700' };
+    return pricingTypes.map(type => {
+        const lowerType = type.toLowerCase();
+        let className = 'bg-gray-100 text-gray-700';
+
+        if (lowerType.includes('free') && !lowerType.includes('freemium')) {
+            className = 'bg-emerald-100 text-emerald-700';
+        } else if (lowerType.includes('freemium')) {
+            className = 'bg-blue-100 text-blue-700';
+        } else if (lowerType.includes('paid') || lowerType.includes('$')) {
+            className = 'bg-purple-100 text-purple-700';
+        } else if (lowerType.includes('open source')) {
+            className = 'bg-orange-100 text-orange-700';
+        } else if (lowerType.includes('trial')) {
+            className = 'bg-teal-100 text-teal-700';
+        } else if (lowerType.includes('api')) {
+            className = 'bg-indigo-100 text-indigo-700';
+        } else if (lowerType.includes('lifetime')) {
+            className = 'bg-pink-100 text-pink-700';
+        }
+
+        return { label: type, className };
+    });
 };
 
 export default function ToolCard({ tool }: ToolCardProps) {
     const [isSaved, setIsSaved] = useState(false);
-    const pricingBadge = getPricingBadge(tool.pricing_type, tool.pricing);
+    const pricingBadges = getPricingBadges(tool.pricing_type, tool.pricing);
     const displayDescription = tool.short_description || tool.description;
 
     const handleSaveClick = (e: React.MouseEvent) => {
@@ -107,10 +119,12 @@ export default function ToolCard({ tool }: ToolCardProps) {
 
                 {/* Footer: Pricing Badge + Category Badge */}
                 <div className="flex items-center gap-2 flex-wrap">
-                    {/* Pricing Badge */}
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${pricingBadge.className}`}>
-                        {pricingBadge.label}
-                    </span>
+                    {/* Pricing Badges */}
+                    {pricingBadges.map((badge, index) => (
+                        <span key={index} className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${badge.className}`}>
+                            {badge.label}
+                        </span>
+                    ))}
 
                     {/* Category Badge */}
                     {tool.categories?.[0] && (

@@ -12,7 +12,7 @@ interface Tool {
     description: string;
     short_description?: string;
     pricing: string;
-    pricing_type?: string;
+    pricing_type?: string[];
     categories: { name: string; slug: string }[];
     logo_url?: string | null;
     verified?: boolean;
@@ -115,10 +115,18 @@ export default function ToolList() {
                 }
 
                 // Client-side filter for multiple pricing types
-                if (selectedPricing.length > 1) {
+                // Note: Ideally backend should handle this, but for now we filter what's returned
+                if (selectedPricing.length > 0) {
                     filteredTools = filteredTools.filter((t: Tool) => {
-                        const pricingType = (t.pricing_type || t.pricing || '').toLowerCase();
-                        return selectedPricing.some(p => pricingType.includes(p.toLowerCase()));
+                        const toolTypes = t.pricing_type?.map(p => p.toLowerCase()) ||
+                            (t.pricing ? [t.pricing.toLowerCase()] : []);
+
+                        // If tool has no type info, only show if filtered for 'free' and tool has no price info (assuming free)
+                        if (toolTypes.length === 0) return selectedPricing.includes('free');
+
+                        return toolTypes.some(type =>
+                            selectedPricing.some(p => type.includes(p))
+                        );
                     });
                 }
 
@@ -182,7 +190,7 @@ export default function ToolList() {
             <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">Pricing</h3>
                 <div className="space-y-2">
-                    {['Free', 'Freemium', 'Paid'].map((pricing) => (
+                    {['Free', 'Paid', 'Freemium', 'Trial', 'API', 'Lifetime'].map((pricing) => (
                         <label key={pricing} className="flex items-center gap-3 cursor-pointer group">
                             <input
                                 type="checkbox"
@@ -225,8 +233,8 @@ export default function ToolList() {
                             key={cat.id}
                             onClick={() => handleCategoryClick(cat.slug)}
                             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === cat.slug
-                                    ? 'bg-emerald-100 text-emerald-700 font-medium'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                ? 'bg-emerald-100 text-emerald-700 font-medium'
+                                : 'text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {cat.name}

@@ -11,7 +11,7 @@ interface Tool {
     slug: string;
     short_description: string;
     logo_url: string | null;
-    pricing_type: string | null;
+    pricing_type: string[] | null;
     verified: boolean;
     categories: { name: string; slug: string }[];
 }
@@ -227,7 +227,7 @@ export default function BlogDetail() {
                                     tool={{
                                         ...tool,
                                         description: tool.short_description,
-                                        pricing: tool.pricing_type || 'Free',
+                                        pricing: tool.pricing_type?.[0] || 'Free',
                                         pricing_type: tool.pricing_type ?? undefined,
                                         logo_url: tool.logo_url ?? undefined,
                                     }}
