@@ -68,7 +68,7 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
 
                 // Redirect based on role
                 if (payload.role === 'ADMIN') {
-                    navigate('/admin/submissions')
+                    navigate('/admin')
                 } else {
                     navigate('/')
                 }
