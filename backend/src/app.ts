@@ -112,7 +112,8 @@ export const buildApp = () => {
 
                 // Determine price for schema
                 let priceValue = '0.00';
-                if (tool.pricing_type === 'Paid' || tool.pricing_type === 'Freemium') {
+                const pricingTypes = tool.pricing_type || [];
+                if (pricingTypes.includes('Paid') || pricingTypes.includes('Freemium')) {
                     // Try to extract a number from pricing string
                     const priceMatch = tool.pricing?.match(/\$?(\d+(?:\.\d{2})?)/);
                     priceValue = priceMatch ? priceMatch[1] : '9.99';
