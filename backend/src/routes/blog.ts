@@ -20,17 +20,21 @@ export default async function (app: FastifyInstance) {
                     page: z.string().optional().default('1'),
                     perPage: z.string().optional().default('10'),
                     featured: z.string().optional(),
+                    tag: z.string().optional(),
                 }),
             },
         },
         async (request, reply) => {
-            const { page, perPage, featured } = request.query;
+            const { page, perPage, featured, tag } = request.query;
             const take = parseInt(perPage);
             const skip = (parseInt(page) - 1) * take;
 
             const where: any = { published: true };
             if (featured === 'true') {
                 where.featured = true;
+            }
+            if (tag) {
+                where.tags = { some: { slug: tag } };
             }
 
             try {
@@ -50,6 +54,7 @@ export default async function (app: FastifyInstance) {
                             read_time: true,
                             featured: true,
                             publishedAt: true,
+                            tags: { select: { id: true, name: true, slug: true } },
                         },
                     }),
                     prisma.blogPost.count({ where }),
@@ -71,6 +76,25 @@ export default async function (app: FastifyInstance) {
         }
     );
 
+    // GET /api/blog/tags - Get all blog tags
+    fastify.get('/blog/tags', async (_request, reply) => {
+        try {
+            const tags = await prisma.blogTag.findMany({
+                orderBy: { name: 'asc' },
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    _count: { select: { posts: true } },
+                },
+            });
+            return reply.send({ tags });
+        } catch (error) {
+            console.error('Error fetching blog tags:', error);
+            return reply.status(500).send({ error: 'Failed to fetch tags' });
+        }
+    });
+
     // GET /api/blog/:slug - Get single blog post
     fastify.get(
         '/blog/:slug',
@@ -86,6 +110,7 @@ export default async function (app: FastifyInstance) {
                 const post = await prisma.blogPost.findUnique({
                     where: { slug },
                     include: {
+                        tags: { select: { id: true, name: true, slug: true } },
                         related_tools: {
                             select: {
                                 id: true,
@@ -126,17 +151,25 @@ export default async function (app: FastifyInstance) {
                 querystring: z.object({
                     page: z.string().optional().default('1'),
                     perPage: z.string().optional().default('20'),
+                    status: z.string().optional(), // 'published', 'draft', 'all'
+                    tag: z.string().optional(),
                 }),
             },
         },
         async (request, reply) => {
-            const { page, perPage } = request.query;
+            const { page, perPage, status, tag } = request.query;
             const take = parseInt(perPage);
             const skip = (parseInt(page) - 1) * take;
+
+            const where: any = {};
+            if (status === 'published') where.published = true;
+            else if (status === 'draft') where.published = false;
+            if (tag) where.tags = { some: { slug: tag } };
 
             try {
                 const [posts, total] = await Promise.all([
                     prisma.blogPost.findMany({
+                        where,
                         take,
                         skip,
                         orderBy: { createdAt: 'desc' },
@@ -150,9 +183,11 @@ export default async function (app: FastifyInstance) {
                             featured: true,
                             publishedAt: true,
                             createdAt: true,
+                            updatedAt: true,
+                            tags: { select: { id: true, name: true, slug: true } },
                         },
                     }),
-                    prisma.blogPost.count(),
+                    prisma.blogPost.count({ where }),
                 ]);
 
                 return reply.send({
@@ -171,6 +206,39 @@ export default async function (app: FastifyInstance) {
         }
     );
 
+    // GET /api/admin/blog/:id - Get single post for editing
+    fastify.get(
+        '/admin/blog/:id',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                params: z.object({ id: z.string() }),
+            },
+        },
+        async (request, reply) => {
+            const { id } = request.params;
+
+            try {
+                const post = await prisma.blogPost.findUnique({
+                    where: { id: parseInt(id) },
+                    include: {
+                        tags: { select: { id: true, name: true, slug: true } },
+                        related_tools: { select: { id: true, name: true, slug: true } },
+                    },
+                });
+
+                if (!post) {
+                    return reply.status(404).send({ error: 'Blog post not found' });
+                }
+
+                return reply.send({ post });
+            } catch (error) {
+                console.error('Error fetching blog post:', error);
+                return reply.status(500).send({ error: 'Failed to fetch blog post' });
+            }
+        }
+    );
+
     // POST /api/admin/blog - Create blog post
     fastify.post(
         '/admin/blog',
@@ -182,25 +250,28 @@ export default async function (app: FastifyInstance) {
                     slug: z.string().optional(),
                     excerpt: z.string().optional(),
                     content: z.string(),
-                    cover_image: z.string().optional(),
-                    seo_title: z.string().optional(),
-                    seo_description: z.string().optional(),
-                    author: z.string().optional(),
+                    cover_image: z.string().optional().nullable(),
+                    seo_title: z.string().optional().nullable(),
+                    seo_description: z.string().optional().nullable(),
+                    author: z.string().optional().nullable(),
                     published: z.boolean().optional().default(false),
                     featured: z.boolean().optional().default(false),
-                    read_time: z.number().optional(),
+                    read_time: z.number().optional().nullable(),
+                    tagIds: z.array(z.number()).optional(),
                     relatedToolIds: z.array(z.number()).optional(),
                 }),
             },
         },
         async (request, reply) => {
-            const { relatedToolIds, ...postData } = request.body;
-            const slug = postData.slug || postData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const { tagIds, relatedToolIds, ...postData } = request.body;
+            const slug = postData.slug || postData.title.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
 
             try {
                 // Calculate read time if not provided (avg 200 words/min)
-                const wordCount = postData.content.split(/\s+/).length;
-                const calculatedReadTime = Math.ceil(wordCount / 200);
+                const wordCount = postData.content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+                const calculatedReadTime = Math.ceil(wordCount / 200) || 1;
 
                 const post = await prisma.blogPost.create({
                     data: {
@@ -208,9 +279,15 @@ export default async function (app: FastifyInstance) {
                         slug,
                         read_time: postData.read_time || calculatedReadTime,
                         publishedAt: postData.published ? new Date() : null,
+                        tags: tagIds?.length
+                            ? { connect: tagIds.map(id => ({ id })) }
+                            : undefined,
                         related_tools: relatedToolIds?.length
                             ? { connect: relatedToolIds.map(id => ({ id })) }
                             : undefined,
+                    },
+                    include: {
+                        tags: { select: { id: true, name: true, slug: true } },
                     },
                 });
 
@@ -235,7 +312,7 @@ export default async function (app: FastifyInstance) {
                 body: z.object({
                     title: z.string().optional(),
                     slug: z.string().optional(),
-                    excerpt: z.string().optional(),
+                    excerpt: z.string().optional().nullable(),
                     content: z.string().optional(),
                     cover_image: z.string().optional().nullable(),
                     seo_title: z.string().optional().nullable(),
@@ -244,13 +321,14 @@ export default async function (app: FastifyInstance) {
                     published: z.boolean().optional(),
                     featured: z.boolean().optional(),
                     read_time: z.number().optional().nullable(),
+                    tagIds: z.array(z.number()).optional(),
                     relatedToolIds: z.array(z.number()).optional(),
                 }),
             },
         },
         async (request, reply) => {
             const { id } = request.params;
-            const { relatedToolIds, ...postData } = request.body;
+            const { tagIds, relatedToolIds, ...postData } = request.body;
 
             try {
                 // If publishing for first time, set publishedAt
@@ -262,20 +340,37 @@ export default async function (app: FastifyInstance) {
                     }
                 }
 
+                // Recalculate read time if content changed
+                let readTime = postData.read_time;
+                if (postData.content && !postData.read_time) {
+                    const wordCount = postData.content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+                    readTime = Math.ceil(wordCount / 200) || 1;
+                }
+
                 const post = await prisma.blogPost.update({
                     where: { id: parseInt(id) },
                     data: {
                         ...postData,
+                        read_time: readTime,
                         ...(publishedAt && { publishedAt }),
-                        ...(relatedToolIds && {
+                        ...(tagIds !== undefined && {
+                            tags: { set: tagIds.map(id => ({ id })) },
+                        }),
+                        ...(relatedToolIds !== undefined && {
                             related_tools: { set: relatedToolIds.map(id => ({ id })) },
                         }),
+                    },
+                    include: {
+                        tags: { select: { id: true, name: true, slug: true } },
                     },
                 });
 
                 return reply.send({ post });
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error updating blog post:', error);
+                if (error.code === 'P2002') {
+                    return reply.status(400).send({ error: 'A post with this slug already exists' });
+                }
                 return reply.status(500).send({ error: 'Failed to update blog post' });
             }
         }
@@ -302,6 +397,119 @@ export default async function (app: FastifyInstance) {
             } catch (error) {
                 console.error('Error deleting blog post:', error);
                 return reply.status(500).send({ error: 'Failed to delete blog post' });
+            }
+        }
+    );
+
+    // ---------------------------------------------------------------
+    // TAG MANAGEMENT ROUTES
+    // ---------------------------------------------------------------
+
+    // GET /api/admin/blog/tags - List all tags (admin)
+    fastify.get(
+        '/admin/blog/tags',
+        {
+            preHandler: [requireAdmin],
+        },
+        async (_request, reply) => {
+            try {
+                const tags = await prisma.blogTag.findMany({
+                    orderBy: { name: 'asc' },
+                    include: {
+                        _count: { select: { posts: true } },
+                    },
+                });
+                return reply.send({ tags });
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+                return reply.status(500).send({ error: 'Failed to fetch tags' });
+            }
+        }
+    );
+
+    // POST /api/admin/blog/tags - Create tag
+    fastify.post(
+        '/admin/blog/tags',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                body: z.object({
+                    name: z.string().min(1),
+                }),
+            },
+        },
+        async (request, reply) => {
+            const { name } = request.body;
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+            try {
+                const tag = await prisma.blogTag.create({
+                    data: { name, slug },
+                });
+                return reply.status(201).send({ tag });
+            } catch (error: any) {
+                console.error('Error creating tag:', error);
+                if (error.code === 'P2002') {
+                    return reply.status(400).send({ error: 'A tag with this name already exists' });
+                }
+                return reply.status(500).send({ error: 'Failed to create tag' });
+            }
+        }
+    );
+
+    // PUT /api/admin/blog/tags/:id - Update tag
+    fastify.put(
+        '/admin/blog/tags/:id',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                params: z.object({ id: z.string() }),
+                body: z.object({
+                    name: z.string().min(1),
+                }),
+            },
+        },
+        async (request, reply) => {
+            const { id } = request.params;
+            const { name } = request.body;
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+            try {
+                const tag = await prisma.blogTag.update({
+                    where: { id: parseInt(id) },
+                    data: { name, slug },
+                });
+                return reply.send({ tag });
+            } catch (error: any) {
+                console.error('Error updating tag:', error);
+                if (error.code === 'P2002') {
+                    return reply.status(400).send({ error: 'A tag with this name already exists' });
+                }
+                return reply.status(500).send({ error: 'Failed to update tag' });
+            }
+        }
+    );
+
+    // DELETE /api/admin/blog/tags/:id - Delete tag
+    fastify.delete(
+        '/admin/blog/tags/:id',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                params: z.object({ id: z.string() }),
+            },
+        },
+        async (request, reply) => {
+            const { id } = request.params;
+
+            try {
+                await prisma.blogTag.delete({
+                    where: { id: parseInt(id) },
+                });
+                return reply.send({ message: 'Tag deleted successfully' });
+            } catch (error) {
+                console.error('Error deleting tag:', error);
+                return reply.status(500).send({ error: 'Failed to delete tag' });
             }
         }
     );

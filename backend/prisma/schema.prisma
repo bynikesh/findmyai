@@ -307,17 +307,26 @@ model ImportLog {
 
   @@index([source, timestamp])
 }
-
 // ---------------------------------------------------------------
 // Blog/News Section
 // ---------------------------------------------------------------
+
+model BlogTag {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  slug      String     @unique
+  posts     BlogPost[]
+  createdAt DateTime   @default(now())
+
+  @@index([slug])
+}
 
 model BlogPost {
   id              Int       @id @default(autoincrement())
   title           String
   slug            String    @unique
   excerpt         String?   @db.Text    // Short summary for listings
-  content         String    @db.Text    // Full article content (Markdown)
+  content         String    @db.Text    // Full article content (HTML from WYSIWYG)
   cover_image     String?               // Hero image URL
   
   // SEO Fields
@@ -330,6 +339,9 @@ model BlogPost {
   featured        Boolean   @default(false)
   read_time       Int?                  // Estimated minutes to read
   
+  // Tags relation
+  tags            BlogTag[]
+  
   // Related tools (for articles like "Top 10 alternatives to...")
   related_tools   Tool[]    @relation("BlogToolRelation")
   
@@ -341,4 +353,3 @@ model BlogPost {
   @@index([published, publishedAt])
   @@index([featured])
 }
-

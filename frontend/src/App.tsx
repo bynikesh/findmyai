@@ -26,6 +26,9 @@ import CategoriesManagement from './pages/admin/CategoriesManagement'
 import JobsManagement from './pages/admin/JobsManagement'
 import TasksManagement from './pages/admin/TasksManagement'
 import ImportTools from './pages/admin/ImportTools'
+import BlogManagement from './pages/admin/BlogManagement'
+import BlogPostEditor from './pages/admin/BlogPostEditor'
+import BlogTagsManagement from './pages/admin/BlogTagsManagement'
 import NotFound from './pages/NotFound'
 import ServerError from './pages/ServerError'
 import { ToastProvider } from './contexts/ToastContext'
@@ -74,6 +77,10 @@ function App() {
                         <Route path="/admin/analytics" element={<AdminGuard><AnalyticsDashboard /></AdminGuard>} />
                         <Route path="/admin/submissions" element={<AdminGuard><SubmissionsList /></AdminGuard>} />
                         <Route path="/admin/submissions/:id" element={<AdminGuard><SubmissionReview /></AdminGuard>} />
+                        <Route path="/admin/blog" element={<AdminGuard><BlogManagement /></AdminGuard>} />
+                        <Route path="/admin/blog/new" element={<AdminGuard><BlogPostEditor /></AdminGuard>} />
+                        <Route path="/admin/blog/:id/edit" element={<AdminGuard><BlogPostEditor /></AdminGuard>} />
+                        <Route path="/admin/blog/tags" element={<AdminGuard><BlogTagsManagement /></AdminGuard>} />
 
                         {/* 404 - Must be last */}
                         <Route path="*" element={<NotFound />} />
