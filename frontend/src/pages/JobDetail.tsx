@@ -11,7 +11,7 @@ interface Tool {
     short_description?: string;
     logo_url?: string | null;
     pricing?: string;
-    pricing_type?: string;
+    pricing_type?: string[];
     verified?: boolean;
     categories: { name: string; slug: string }[];
 }
