@@ -141,12 +141,12 @@ export default function Header() {
     const getSeeAllLink = () => {
         switch (activeTab) {
             case 'category':
-                return { href: '/tools', label: 'See all Categories' };
+                return { href: '/categories', label: 'See all Categories' };
             case 'job':
-                return { href: '/tools?view=jobs', label: 'See all Jobs' };
+                return { href: '/jobs', label: 'See all Jobs' };
             case 'task':
             default:
-                return { href: '/tools?view=tasks', label: 'See all Tasks' };
+                return { href: '/tasks', label: 'See all Tasks' };
         }
     };
 
@@ -381,19 +381,29 @@ export default function Header() {
                                 <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                     Discover AI Tools
                                 </p>
-                                {sidebarItems.map((item) => (
-                                    <Disclosure.Button
-                                        key={item.name}
-                                        as={Link}
-                                        to={item.type === 'category' ? '/tools' : `/tools?view=${item.type}s`}
-                                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500 text-white">
-                                            <item.icon className="h-4 w-4" />
-                                        </span>
-                                        {item.name}
-                                    </Disclosure.Button>
-                                ))}
+                                {sidebarItems.map((item) => {
+                                    const getMobileLink = () => {
+                                        switch (item.type) {
+                                            case 'category': return '/categories';
+                                            case 'job': return '/jobs';
+                                            case 'task': return '/tasks';
+                                            default: return '/tools';
+                                        }
+                                    };
+                                    return (
+                                        <Disclosure.Button
+                                            key={item.name}
+                                            as={Link}
+                                            to={getMobileLink()}
+                                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
+                                        >
+                                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500 text-white">
+                                                <item.icon className="h-4 w-4" />
+                                            </span>
+                                            {item.name}
+                                        </Disclosure.Button>
+                                    );
+                                })}
                             </div>
 
                             <div className="border-t border-gray-200 my-2" />

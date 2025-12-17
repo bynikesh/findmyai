@@ -8,6 +8,8 @@ import ToolList from './pages/ToolList'
 import ToolDetail from './pages/ToolDetail'
 import JobDetail from './pages/JobDetail'
 import TaskDetail from './pages/TaskDetail'
+import JobsList from './pages/JobsList'
+import TasksList from './pages/TasksList'
 import BlogList from './pages/BlogList'
 import BlogDetail from './pages/BlogDetail'
 import Submit from './pages/Submit'
@@ -29,6 +31,9 @@ import ImportTools from './pages/admin/ImportTools'
 import BlogManagement from './pages/admin/BlogManagement'
 import BlogPostEditor from './pages/admin/BlogPostEditor'
 import BlogTagsManagement from './pages/admin/BlogTagsManagement'
+import PagesManagement from './pages/admin/PagesManagement'
+import PageEditor from './pages/admin/PageEditor'
+import StaticPage from './pages/StaticPage'
 import NotFound from './pages/NotFound'
 import ServerError from './pages/ServerError'
 import { ToastProvider } from './contexts/ToastContext'
@@ -53,7 +58,9 @@ function App() {
                         <Route path="/tools" element={<ToolList />} />
                         <Route path="/categories" element={<CategoryList />} />
                         <Route path="/tools/:slug" element={<ToolDetail />} />
+                        <Route path="/jobs" element={<JobsList />} />
                         <Route path="/jobs/:slug" element={<JobDetail />} />
+                        <Route path="/tasks" element={<TasksList />} />
                         <Route path="/tasks/:slug" element={<TaskDetail />} />
                         <Route path="/blog" element={<BlogList />} />
                         <Route path="/blog/:slug" element={<BlogDetail />} />
@@ -81,6 +88,12 @@ function App() {
                         <Route path="/admin/blog/new" element={<AdminGuard><BlogPostEditor /></AdminGuard>} />
                         <Route path="/admin/blog/:id/edit" element={<AdminGuard><BlogPostEditor /></AdminGuard>} />
                         <Route path="/admin/blog/tags" element={<AdminGuard><BlogTagsManagement /></AdminGuard>} />
+                        <Route path="/admin/pages" element={<AdminGuard><PagesManagement /></AdminGuard>} />
+                        <Route path="/admin/pages/new" element={<AdminGuard><PageEditor /></AdminGuard>} />
+                        <Route path="/admin/pages/:id/edit" element={<AdminGuard><PageEditor /></AdminGuard>} />
+
+                        {/* Static Pages - Dynamic route */}
+                        <Route path="/:slug" element={<StaticPage />} />
 
                         {/* 404 - Must be last */}
                         <Route path="*" element={<NotFound />} />

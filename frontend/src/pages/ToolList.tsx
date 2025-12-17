@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { MagnifyingGlassIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, FunnelIcon, XMarkIcon, BriefcaseIcon, ClipboardDocumentListIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import ToolCard from '../components/ToolCard';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { trackCategoryView } from '../lib/analytics';
 import { apiUrl } from 'lib/constants';
 
@@ -22,6 +22,20 @@ interface Category {
     id: number;
     name: string;
     slug: string;
+}
+
+interface Job {
+    id: number;
+    name: string;
+    slug: string;
+    _count?: { tools: number };
+}
+
+interface Task {
+    id: number;
+    name: string;
+    slug: string;
+    _count?: { tools: number };
 }
 
 // Loading Skeleton Component
@@ -47,6 +61,8 @@ export default function ToolList() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [tools, setTools] = useState<Tool[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [jobs, setJobs] = useState<Job[]>([]);
+    const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [meta, setMeta] = useState<any>(null);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -54,6 +70,8 @@ export default function ToolList() {
     // Filter states
     const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
     const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+    const [selectedJob, setSelectedJob] = useState(searchParams.get('job') || '');
+    const [selectedTask, setSelectedTask] = useState(searchParams.get('task') || '');
     const [selectedPricing, setSelectedPricing] = useState<string[]>(
         searchParams.get('pricing')?.split(',').filter(Boolean) || []
     );
@@ -61,12 +79,25 @@ export default function ToolList() {
     const [selectedSort, setSelectedSort] = useState(searchParams.get('sort') || 'newest');
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Fetch categories
+    // Fetch categories, jobs, and tasks
     useEffect(() => {
+        // Fetch categories
         fetch(`${apiUrl}/api/categories`)
             .then(res => (res.ok ? res.json() : []))
             .then(data => setCategories(data || []))
             .catch(() => setCategories([]));
+
+        // Fetch jobs
+        fetch(`${apiUrl}/api/jobs`)
+            .then(res => (res.ok ? res.json() : { jobs: [] }))
+            .then(data => setJobs(data.jobs || []))
+            .catch(() => setJobs([]));
+
+        // Fetch tasks
+        fetch(`${apiUrl}/api/tasks`)
+            .then(res => (res.ok ? res.json() : { tasks: [] }))
+            .then(data => setTasks(data.tasks || []))
+            .catch(() => setTasks([]));
     }, []);
 
     // Category info for header
@@ -149,11 +180,13 @@ export default function ToolList() {
         const params = new URLSearchParams();
         if (searchQuery) params.set('search', searchQuery);
         if (selectedCategory) params.set('category', selectedCategory);
+        if (selectedJob) params.set('job', selectedJob);
+        if (selectedTask) params.set('task', selectedTask);
         if (selectedPricing.length) params.set('pricing', selectedPricing.join(','));
         if (verifiedOnly) params.set('verified', 'true');
         if (selectedSort && selectedSort !== 'newest') params.set('sort', selectedSort);
         setSearchParams(params);
-    }, [searchQuery, selectedCategory, selectedPricing, verifiedOnly, selectedSort, setSearchParams]);
+    }, [searchQuery, selectedCategory, selectedJob, selectedTask, selectedPricing, verifiedOnly, selectedSort, setSearchParams]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -175,13 +208,15 @@ export default function ToolList() {
     const clearAllFilters = () => {
         setSearchQuery('');
         setSelectedCategory('');
+        setSelectedJob('');
+        setSelectedTask('');
         setSelectedPricing([]);
         setVerifiedOnly(false);
         setSelectedSort('newest');
         setCurrentPage(1);
     };
 
-    const hasActiveFilters = searchQuery || selectedCategory || selectedPricing.length > 0 || verifiedOnly;
+    const hasActiveFilters = searchQuery || selectedCategory || selectedJob || selectedTask || selectedPricing.length > 0 || verifiedOnly;
 
     // Sidebar Filter Component
     const FilterSidebar = ({ mobile = false }: { mobile?: boolean }) => (
@@ -226,9 +261,14 @@ export default function ToolList() {
 
             {/* Categories */}
             <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Categories</h3>
-                <div className="space-y-1 max-h-64 overflow-y-auto">
-                    {categories.map((cat) => (
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900">Categories</h3>
+                    <Link to="/categories" className="text-xs text-emerald-600 hover:text-emerald-700">
+                        See all
+                    </Link>
+                </div>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {categories.slice(0, 10).map((cat) => (
                         <button
                             key={cat.id}
                             onClick={() => handleCategoryClick(cat.slug)}
@@ -238,6 +278,66 @@ export default function ToolList() {
                                 }`}
                         >
                             {cat.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Job Roles */}
+            <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <BriefcaseIcon className="w-4 h-4 text-emerald-600" />
+                        By Job Role
+                    </h3>
+                    <Link to="/jobs" className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                        See all <ChevronRightIcon className="w-3 h-3" />
+                    </Link>
+                </div>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {jobs.slice(0, 8).map((job) => (
+                        <button
+                            key={job.id}
+                            onClick={() => { setSelectedJob(job.slug === selectedJob ? '' : job.slug); setCurrentPage(1); }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${selectedJob === job.slug
+                                ? 'bg-emerald-100 text-emerald-700 font-medium'
+                                : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                        >
+                            <span className="truncate">{job.name}</span>
+                            {job._count && (
+                                <span className="text-xs text-gray-400 ml-2">{job._count.tools}</span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Tasks */}
+            <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <ClipboardDocumentListIcon className="w-4 h-4 text-purple-600" />
+                        By Task
+                    </h3>
+                    <Link to="/tasks" className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                        See all <ChevronRightIcon className="w-3 h-3" />
+                    </Link>
+                </div>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {tasks.slice(0, 8).map((task) => (
+                        <button
+                            key={task.id}
+                            onClick={() => { setSelectedTask(task.slug === selectedTask ? '' : task.slug); setCurrentPage(1); }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${selectedTask === task.slug
+                                ? 'bg-purple-100 text-purple-700 font-medium'
+                                : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                        >
+                            <span className="truncate">{task.name}</span>
+                            {task._count && (
+                                <span className="text-xs text-gray-400 ml-2">{task._count.tools}</span>
+                            )}
                         </button>
                     ))}
                 </div>
@@ -317,6 +417,24 @@ export default function ToolList() {
                                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                     {categoryInfo?.name || selectedCategory}
                                     <button onClick={() => setSelectedCategory('')}>
+                                        <XMarkIcon className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            )}
+                            {selectedJob && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-700">
+                                    <BriefcaseIcon className="w-3 h-3" />
+                                    {jobs.find(j => j.slug === selectedJob)?.name || selectedJob}
+                                    <button onClick={() => setSelectedJob('')}>
+                                        <XMarkIcon className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            )}
+                            {selectedTask && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                                    <ClipboardDocumentListIcon className="w-3 h-3" />
+                                    {tasks.find(t => t.slug === selectedTask)?.name || selectedTask}
+                                    <button onClick={() => setSelectedTask('')}>
                                         <XMarkIcon className="w-3 h-3" />
                                     </button>
                                 </span>

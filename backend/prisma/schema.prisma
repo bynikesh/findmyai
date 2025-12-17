@@ -353,3 +353,31 @@ model BlogPost {
   @@index([published, publishedAt])
   @@index([featured])
 }
+
+// ---------------------------------------------------------------
+// Static Pages (About, Contact, Privacy, etc.)
+// ---------------------------------------------------------------
+
+model Page {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String    @unique
+  content         String    @db.Text    // HTML content
+  
+  // SEO Fields
+  seo_title       String?
+  seo_description String?   @db.Text
+  
+  // Metadata
+  published       Boolean   @default(true)
+  showInFooter    Boolean   @default(false)
+  footerColumn    String?   // 'discover', 'resources', 'company', 'legal'
+  icon            String?   // Optional icon for the page
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([published])
+}

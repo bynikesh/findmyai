@@ -11,6 +11,7 @@ import {
     BriefcaseIcon,
     ClipboardDocumentListIcon,
     DocumentTextIcon,
+    DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -23,6 +24,7 @@ const navigation: NavItem[] = [
     { name: 'Dashboard', href: '/admin', icon: HomeIcon },
     { name: 'Tools', href: '/admin/tools', icon: CubeIcon },
     { name: 'Blog', href: '/admin/blog', icon: DocumentTextIcon },
+    { name: 'Pages', href: '/admin/pages', icon: DocumentDuplicateIcon },
     { name: 'Submissions', href: '/admin/submissions', icon: ClipboardDocumentCheckIcon },
     { name: 'Categories', href: '/admin/categories', icon: FolderIcon },
     { name: 'Jobs', href: '/admin/jobs', icon: BriefcaseIcon },

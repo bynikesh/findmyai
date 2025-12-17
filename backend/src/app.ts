@@ -9,6 +9,12 @@ import fastifyStatic from '@fastify/static';
 import path from 'path';
 import fs from 'fs';
 import prisma from './lib/prisma';
+import {
+    getIndexHtml,
+    injectSeoMeta,
+    buildBlogPostSchema,
+    buildBreadcrumbSchema
+} from './lib/seo';
 
 export const buildApp = () => {
     const app = Fastify({
@@ -59,6 +65,7 @@ export const buildApp = () => {
     app.register(import('./routes/import'), { prefix: '/api' });
     app.register(import('./routes/jobsTasks'), { prefix: '/api' });
     app.register(import('./routes/blog'), { prefix: '/api' });
+    app.register(import('./routes/pages'), { prefix: '' });
 
     // Static Files (Priority 3)
     app.register(fastifyStatic, {
@@ -178,6 +185,190 @@ export const buildApp = () => {
             return reply.sendFile('index.html');
         }
     });
+
+    // Dynamic SEO for Blog Posts (Priority 4b)
+    app.get('/blog/:slug', async (request, reply) => {
+        const { slug } = request.params as { slug: string };
+        const baseUrl = process.env.BASE_URL || 'https://findmyai.xyz';
+
+        try {
+            let html = getIndexHtml();
+
+            const post = await prisma.blogPost.findUnique({
+                where: { slug },
+                select: {
+                    title: true,
+                    excerpt: true,
+                    content: true,
+                    author: true,
+                    publishedAt: true,
+                    cover_image: true,
+                    seo_title: true,
+                    seo_description: true,
+                }
+            });
+
+            if (post) {
+                const title = post.seo_title || `${post.title} | FindMyAI Blog`;
+                const description = post.seo_description || post.excerpt || 'Read the latest AI insights on FindMyAI';
+                const url = `${baseUrl}/blog/${slug}`;
+                const image = post.cover_image || `${baseUrl}/og-image.png`;
+
+                const jsonLd = buildBlogPostSchema({ ...post, slug }, baseUrl);
+
+                html = injectSeoMeta(html, {
+                    title,
+                    description,
+                    url,
+                    image,
+                    jsonLd
+                });
+            }
+
+            return reply.type('text/html').send(html);
+        } catch (error) {
+            console.error('Error serving blog page:', error);
+            return reply.sendFile('index.html');
+        }
+    });
+
+    // Dynamic SEO for Static Pages (About, Contact, Privacy, etc.)
+    app.get('/:pageSlug', async (request, reply) => {
+        const { pageSlug } = request.params as { pageSlug: string };
+        const baseUrl = process.env.BASE_URL || 'https://findmyai.xyz';
+
+        // Skip if it's a known route that should go to React
+        const skipSlugs = ['tools', 'categories', 'jobs', 'tasks', 'blog', 'submit', 'quiz', 'login', 'admin'];
+        if (skipSlugs.includes(pageSlug)) {
+            return reply.sendFile('index.html');
+        }
+
+        try {
+            let html = getIndexHtml();
+
+            const page = await prisma.page.findUnique({
+                where: { slug: pageSlug, published: true },
+                select: {
+                    title: true,
+                    content: true,
+                    seo_title: true,
+                    seo_description: true,
+                }
+            });
+
+            if (page) {
+                const title = page.seo_title || `${page.title} | FindMyAI`;
+                const description = page.seo_description || page.content?.replace(/<[^>]*>/g, '').substring(0, 160) || 'FindMyAI - Discover AI Tools';
+                const url = `${baseUrl}/${pageSlug}`;
+
+                const breadcrumbSchema = buildBreadcrumbSchema([
+                    { name: 'Home', url: baseUrl },
+                    { name: page.title, url }
+                ]);
+
+                html = injectSeoMeta(html, {
+                    title,
+                    description,
+                    url,
+                    jsonLd: breadcrumbSchema
+                });
+            }
+
+            return reply.type('text/html').send(html);
+        } catch (error) {
+            console.error('Error serving static page:', error);
+            return reply.sendFile('index.html');
+        }
+    });
+
+    // Dynamic SEO for Job Detail Pages
+    app.get('/jobs/:slug', async (request, reply) => {
+        const { slug } = request.params as { slug: string };
+        const baseUrl = process.env.BASE_URL || 'https://findmyai.xyz';
+
+        try {
+            let html = getIndexHtml();
+
+            const job = await prisma.job.findUnique({
+                where: { slug },
+                select: {
+                    name: true,
+                    description: true,
+                    _count: { select: { tools: true } }
+                }
+            });
+
+            if (job) {
+                const title = `Best AI Tools for ${job.name} | FindMyAI`;
+                const description = job.description || `Discover ${job._count?.tools || 0}+ AI tools perfect for ${job.name}`;
+                const url = `${baseUrl}/jobs/${slug}`;
+
+                const breadcrumbSchema = buildBreadcrumbSchema([
+                    { name: 'Home', url: baseUrl },
+                    { name: 'Jobs', url: `${baseUrl}/jobs` },
+                    { name: job.name, url }
+                ]);
+
+                html = injectSeoMeta(html, {
+                    title,
+                    description,
+                    url,
+                    jsonLd: breadcrumbSchema
+                });
+            }
+
+            return reply.type('text/html').send(html);
+        } catch (error) {
+            console.error('Error serving job page:', error);
+            return reply.sendFile('index.html');
+        }
+    });
+
+    // Dynamic SEO for Task Detail Pages
+    app.get('/tasks/:slug', async (request, reply) => {
+        const { slug } = request.params as { slug: string };
+        const baseUrl = process.env.BASE_URL || 'https://findmyai.xyz';
+
+        try {
+            let html = getIndexHtml();
+
+            const task = await prisma.task.findUnique({
+                where: { slug },
+                select: {
+                    name: true,
+                    description: true,
+                    _count: { select: { tools: true } }
+                }
+            });
+
+            if (task) {
+                const title = `Best AI Tools for ${task.name} | FindMyAI`;
+                const description = task.description || `Discover ${task._count?.tools || 0}+ AI tools for ${task.name}`;
+                const url = `${baseUrl}/tasks/${slug}`;
+
+                const breadcrumbSchema = buildBreadcrumbSchema([
+                    { name: 'Home', url: baseUrl },
+                    { name: 'Tasks', url: `${baseUrl}/tasks` },
+                    { name: task.name, url }
+                ]);
+
+                html = injectSeoMeta(html, {
+                    title,
+                    description,
+                    url,
+                    jsonLd: breadcrumbSchema
+                });
+            }
+
+            return reply.type('text/html').send(html);
+        } catch (error) {
+            console.error('Error serving task page:', error);
+            return reply.sendFile('index.html');
+        }
+    });
+
+    // SEO Routes (sitemap.xml, robots.txt, feed.xml) - Register before catch-all
+    app.register(import('./routes/seo'), { prefix: '' });
 
     // SPA Catch-all (Priority 5) - Serve index.html for any non-API routes
     app.setNotFoundHandler((request, reply) => {
