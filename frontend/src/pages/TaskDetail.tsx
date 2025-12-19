@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ToolCard from '../components/ToolCard';
 import { apiUrl } from 'lib/constants';
+import { CollectionSEO } from '../components/SEO';
 
 interface Tool {
     id: number;
@@ -125,6 +126,13 @@ export default function TaskDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* SEO Meta Tags */}
+            <CollectionSEO
+                type="Task"
+                item={task}
+                toolCount={tools.length}
+            />
+
             {/* Hero Section */}
             <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

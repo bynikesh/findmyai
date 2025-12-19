@@ -13,6 +13,7 @@ import Hero from '../components/Home/Hero';
 import FeaturedTools from '../components/FeaturedTools';
 import RecentlyAdded from '../components/RecentlyAdded';
 import TrendingTools from '../components/TrendingTools';
+import { HomeSEO } from '../components/SEO';
 
 interface Category {
     id: string;
@@ -36,6 +37,9 @@ const categories: Category[] = [
 export default function Home() {
     return (
         <div className="min-h-screen">
+            {/* SEO Meta Tags */}
+            <HomeSEO />
+
             {/* Hero Section */}
             <Hero />
 

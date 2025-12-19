@@ -4,6 +4,7 @@ import ToolCard from '../components/ToolCard';
 import { useSearchParams, Link } from 'react-router-dom';
 import { trackCategoryView } from '../lib/analytics';
 import { apiUrl } from 'lib/constants';
+import { ToolsListSEO } from '../components/SEO';
 
 interface Tool {
     id: number;
@@ -357,6 +358,13 @@ export default function ToolList() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* SEO Meta Tags */}
+            <ToolsListSEO
+                category={categoryInfo?.name}
+                search={searchQuery}
+                totalTools={meta?.total}
+            />
+
             {/* Category Header */}
             {categoryInfo && (
                 <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-8">

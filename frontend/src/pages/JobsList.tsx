@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BriefcaseIcon, MagnifyingGlassIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
 import { apiUrl } from 'lib/constants';
+import { SEO } from '../components/SEO';
 
 interface Job {
     id: number;
@@ -79,8 +80,50 @@ export default function JobsList() {
             return a.name.localeCompare(b.name);
         });
 
+    // Jobs page SEO schema
+    const jobsListSchema = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "AI Tools by Job Role",
+        "description": "Find AI tools curated for specific job roles. Browse tools for developers, marketers, designers, and more.",
+        "url": "https://findmyai.xyz/jobs",
+        "numberOfItems": jobs.length
+    };
+
+    const jobsFaqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What AI tools are best for my job role?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "FindMyAI categorizes AI tools by profession including developers, marketers, designers, writers, and more. Browse our job roles to find AI tools tailored to your specific work."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How many job roles have dedicated AI tools?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": `FindMyAI lists AI tools for ${jobs.length}+ different job roles and professions, from software developers to healthcare professionals.`
+                }
+            }
+        ]
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* SEO Meta Tags */}
+            <SEO
+                title="AI Tools by Job Role - Find Tools for Your Profession"
+                description={`Discover AI tools curated for ${jobs.length}+ job roles. Find the perfect AI solutions for developers, marketers, designers, writers, and more.`}
+                url="https://findmyai.xyz/jobs"
+                keywords={['AI tools for jobs', 'professional AI tools', 'AI by profession', 'job role AI', 'work AI tools']}
+                jsonLd={[jobsListSchema, jobsFaqSchema]}
+            />
+
             {/* Hero Section */}
             <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

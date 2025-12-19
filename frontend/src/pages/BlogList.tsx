@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDaysIcon, ClockIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { apiUrl } from '../lib/constants';
+import { SEO } from '../components/SEO';
 
 interface BlogPost {
     id: number;
@@ -64,8 +65,29 @@ export default function BlogList() {
     const featuredPost = posts.find(p => p.featured);
     const regularPosts = posts.filter(p => !p.featured || posts.indexOf(p) > 0);
 
+    // Blog list page SEO schema
+    const blogListSchema = {
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        "name": "FindMyAI Blog",
+        "description": "Discover the latest AI tools trends, comparisons, and guides.",
+        "url": "https://findmyai.xyz/blog",
+        "publisher": {
+            "@type": "Organization",
+            "name": "FindMyAI"
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* SEO Meta Tags */}
+            <SEO
+                title="AI Tools Blog - Latest Trends, Guides & Comparisons"
+                description="Discover the latest AI tools trends, in-depth comparisons, and expert guides. Stay updated on artificial intelligence innovations and find the best tools."
+                url="https://findmyai.xyz/blog"
+                keywords={['AI blog', 'AI tools guide', 'AI comparisons', 'artificial intelligence news']}
+                jsonLd={[blogListSchema]}
+            />
             {/* Hero Section */}
             <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

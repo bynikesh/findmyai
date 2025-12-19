@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ClipboardDocumentListIcon, MagnifyingGlassIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
 import { apiUrl } from 'lib/constants';
+import { SEO } from '../components/SEO';
 
 interface Task {
     id: number;
@@ -79,8 +80,50 @@ export default function TasksList() {
             return a.name.localeCompare(b.name);
         });
 
+    // Tasks page SEO schema
+    const tasksListSchema = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "AI Tools by Task",
+        "description": "Find AI tools for specific tasks. Browse tools for writing, coding, design, marketing, and more.",
+        "url": "https://findmyai.xyz/tasks",
+        "numberOfItems": tasks.length
+    };
+
+    const tasksFaqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What AI tools can help with my specific task?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "FindMyAI organizes AI tools by task type. Browse categories like content writing, code generation, image creation, data analysis, and more to find tools designed for your specific needs."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How many task categories does FindMyAI have?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": `FindMyAI has ${tasks.length}+ task categories covering everything from creative work to technical tasks.`
+                }
+            }
+        ]
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* SEO Meta Tags */}
+            <SEO
+                title="AI Tools by Task - Find Tools for What You Need to Do"
+                description={`Discover AI tools organized by ${tasks.length}+ task types. Find the perfect AI solution for writing, coding, design, marketing, and more.`}
+                url="https://findmyai.xyz/tasks"
+                keywords={['AI tools by task', 'task AI tools', 'AI for specific tasks', 'productivity AI', 'work automation AI']}
+                jsonLd={[tasksListSchema, tasksFaqSchema]}
+            />
+
             {/* Hero Section */}
             <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

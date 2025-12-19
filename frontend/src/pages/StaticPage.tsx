@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiUrl } from '../lib/constants';
+import { StaticPageSEO } from '../components/SEO';
 
 interface Page {
     id: number;
@@ -92,6 +93,14 @@ export default function StaticPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* SEO Meta Tags */}
+            <StaticPageSEO
+                title={page.title}
+                slug={page.slug}
+                seo_title={page.seo_title}
+                seo_description={page.seo_description}
+            />
+
             {/* Hero Section */}
             <div className="bg-gradient-to-r from-pink-500 to-violet-600 text-white py-12">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

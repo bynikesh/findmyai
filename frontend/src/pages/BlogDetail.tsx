@@ -4,6 +4,7 @@ import { CalendarDaysIcon, ClockIcon, ArrowLeftIcon, ShareIcon } from '@heroicon
 import ReactMarkdown from 'react-markdown';
 import ToolCard from '../components/ToolCard';
 import { apiUrl } from '../lib/constants';
+import { BlogSEO } from '../components/SEO';
 
 interface Tool {
     id: number;
@@ -140,6 +141,9 @@ export default function BlogDetail() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* SEO Meta Tags */}
+            <BlogSEO post={post} />
+
             {/* Hero Image */}
             <div className="relative">
                 {post.cover_image ? (
