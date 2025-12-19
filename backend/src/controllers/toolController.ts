@@ -407,6 +407,100 @@ export const generateDescription = async (request: FastifyRequest, reply: Fastif
     }
 };
 
+/**
+ * Fetch logo from a website URL
+ * Uses multiple strategies: Open Graph, Apple touch icon, link icon, meta images, favicon
+ */
+export const fetchLogo = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { url } = request.body as { url: string };
+
+    try {
+        // Fetch the page HTML
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/*,*/*;q=0.8',
+            }
+        });
+
+        const html = await response.text();
+        const urlObj = new URL(url);
+        const baseUrl = `${urlObj.protocol}//${urlObj.hostname}`;
+
+        const resolveUrl = (relative: string) => {
+            try {
+                return new URL(relative, url).toString();
+            } catch {
+                return relative;
+            }
+        };
+
+        // Try multiple selectors in order of preference
+        const selectors = [
+            // High-quality logos
+            { regex: /<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i },
+            { regex: /<meta[^>]*property="og:logo"[^>]*content="([^"]+)"/i },
+            { regex: /<link[^>]*rel="apple-touch-icon"[^>]*href="([^"]+)"/i },
+            { regex: /<link[^>]*rel="apple-touch-icon-precomposed"[^>]*href="([^"]+)"/i },
+            // Standard icons
+            { regex: /<link[^>]*rel="icon"[^>]*href="([^"]+)"/i },
+            { regex: /<link[^>]*rel="shortcut icon"[^>]*href="([^"]+)"/i },
+            // Meta images
+            { regex: /<meta[^>]*name="twitter:image"[^>]*content="([^"]+)"/i },
+            { regex: /<meta[^>]*itemprop="image"[^>]*content="([^"]+)"/i },
+        ];
+
+        for (const { regex } of selectors) {
+            const match = html.match(regex);
+            if (match && match[1]) {
+                const logoUrl = resolveUrl(match[1]);
+                // Prefer larger images (skip small favicons if we can)
+                if (!logoUrl.includes('favicon.ico') || selectors.indexOf({ regex }) > 4) {
+                    return reply.send({ logo_url: logoUrl });
+                }
+            }
+        }
+
+        // Fallback: try common favicon paths
+        const commonPaths = [
+            '/apple-touch-icon.png',
+            '/apple-touch-icon-180x180.png',
+            '/favicon-196.png',
+            '/icon-192.png',
+            '/favicon-32x32.png',
+            '/favicon.ico'
+        ];
+
+        for (const path of commonPaths) {
+            try {
+                const checkUrl = `${baseUrl}${path}`;
+                const checkRes = await fetch(checkUrl, { method: 'HEAD' });
+                if (checkRes.ok) {
+                    return reply.send({ logo_url: checkUrl });
+                }
+            } catch {
+                // Continue to next path
+            }
+        }
+
+        // Final fallback: Google Favicon service
+        const googleFavicon = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=128`;
+        return reply.send({ logo_url: googleFavicon });
+
+    } catch (error) {
+        console.error('Logo fetch error:', error);
+        // Fallback to Google Favicon
+        try {
+            const urlObj = new URL(url);
+            return reply.send({
+                logo_url: `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=128`
+            });
+        } catch {
+            return reply.status(500).send({ message: 'Failed to fetch logo' });
+        }
+    }
+};
+
 export const createReview = async (
     request: FastifyRequest<{ Params: { id: string }; Body: { rating: number; title?: string; body?: string } }>,
     reply: FastifyReply,

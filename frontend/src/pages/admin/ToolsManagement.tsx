@@ -16,7 +16,8 @@ interface Tool {
     verified: boolean;
     featured: boolean;
     pricing: string | null;
-    categories: any[];
+    logo_url?: string | null;
+    categories: { id: number; name: string; slug: string }[];
 }
 
 export default function ToolsManagement() {
@@ -98,10 +99,32 @@ export default function ToolsManagement() {
 
     const filteredTools = tools.filter((tool) =>
         tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tool.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (tool.short_description || tool.description).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const columns = [
+        {
+            key: 'logo',
+            header: '',
+            render: (tool: Tool) => (
+                <div className="w-10 h-10 flex-shrink-0">
+                    {tool.logo_url ? (
+                        <img
+                            src={tool.logo_url}
+                            alt={tool.name}
+                            className="w-10 h-10 rounded-lg object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40?text=AI';
+                            }}
+                        />
+                    ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm">
+                            {tool.name.charAt(0)}
+                        </div>
+                    )}
+                </div>
+            ),
+        },
         {
             key: 'name',
             header: 'Name',
@@ -113,15 +136,41 @@ export default function ToolsManagement() {
             ),
         },
         {
-            key: 'description',
-            header: 'Description',
+            key: 'categories',
+            header: 'Categories',
             render: (tool: Tool) => (
-                <div className="max-w-xs truncate">{tool.description}</div>
+                <div className="flex flex-wrap gap-1 max-w-xs">
+                    {tool.categories && tool.categories.length > 0 ? (
+                        tool.categories.slice(0, 3).map((cat) => (
+                            <span
+                                key={cat.id}
+                                className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700"
+                            >
+                                {cat.name}
+                            </span>
+                        ))
+                    ) : (
+                        <span className="text-gray-400 text-xs">No categories</span>
+                    )}
+                    {tool.categories && tool.categories.length > 3 && (
+                        <span className="text-xs text-gray-500">+{tool.categories.length - 3}</span>
+                    )}
+                </div>
             ),
         },
         {
-            key: 'pricing',
-            header: 'Pricing',
+            key: 'website',
+            header: 'Website',
+            render: (tool: Tool) => (
+                <a
+                    href={tool.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm truncate max-w-[200px] block"
+                >
+                    {tool.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                </a>
+            ),
         },
         {
             key: 'verified',

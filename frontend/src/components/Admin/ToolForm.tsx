@@ -128,6 +128,7 @@ export default function ToolForm({ initialData, isEditing = false, onSubmit, isL
 
     const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
     const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+    const [isFetchingLogo, setIsFetchingLogo] = useState(false);
 
     useEffect(() => {
         if (initialData) setFormData(initialData);
@@ -268,6 +269,51 @@ export default function ToolForm({ initialData, isEditing = false, onSubmit, isL
             showError('Error', 'Network error occurred');
         } finally {
             setIsGeneratingDescription(false);
+        }
+    };
+
+    const handleFetchLogo = async () => {
+        if (!formData.website) {
+            showError('Website required', 'Please enter the tool website URL first');
+            return;
+        }
+
+        setIsFetchingLogo(true);
+        try {
+            // First try to fetch from metadata API
+            const res = await fetch(`${apiUrl}/api/admin/tools/fetch-logo`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify({ url: formData.website }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.logo_url) {
+                    setFormData(prev => ({ ...prev, logo_url: data.logo_url }));
+                } else {
+                    showError('No logo found', 'Could not find a logo for this website');
+                }
+            } else {
+                // Fallback to Google favicon service
+                const url = new URL(formData.website);
+                const googleFavicon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=128`;
+                setFormData(prev => ({ ...prev, logo_url: googleFavicon }));
+            }
+        } catch (error) {
+            // Fallback to Google favicon
+            try {
+                const url = new URL(formData.website);
+                const googleFavicon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=128`;
+                setFormData(prev => ({ ...prev, logo_url: googleFavicon }));
+            } catch {
+                showError('Error', 'Failed to fetch logo');
+            }
+        } finally {
+            setIsFetchingLogo(false);
         }
     };
 
@@ -502,11 +548,39 @@ export default function ToolForm({ initialData, isEditing = false, onSubmit, isL
 
             <CollapsibleSection title="Branding & Media">
                 <div className="grid grid-cols-1 gap-6">
-                    <FormInput
-                        label="Logo URL"
-                        value={formData.logo_url}
-                        onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                    />
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={formData.logo_url}
+                                onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                                className="block flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                placeholder="https://..."
+                            />
+                            <button
+                                type="button"
+                                onClick={handleFetchLogo}
+                                disabled={isFetchingLogo || !formData.website}
+                                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-violet-600 text-white rounded-md text-sm font-medium hover:from-pink-600 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                {isFetchingLogo ? 'Fetching...' : 'Fetch Logo'}
+                            </button>
+                        </div>
+                        {formData.logo_url && (
+                            <div className="mt-3 flex items-center gap-3">
+                                <img
+                                    src={formData.logo_url}
+                                    alt="Logo preview"
+                                    className="w-16 h-16 rounded-xl object-cover border border-gray-200"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                />
+                                <span className="text-xs text-gray-500">Logo preview</span>
+                            </div>
+                        )}
+                    </div>
                     <FormInput
                         label="Social Share Image"
                         value={formData.social_share_image}

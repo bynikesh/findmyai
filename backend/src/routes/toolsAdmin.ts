@@ -141,4 +141,18 @@ export default async function (app: FastifyInstance) {
         },
         toolController.generateDescription as any,
     );
+
+    // POST /api/admin/tools/fetch-logo - Fetch logo from website
+    fastify.post(
+        '/admin/tools/fetch-logo',
+        {
+            preHandler: [requireAdmin],
+            schema: {
+                body: z.object({
+                    url: z.string().url(),
+                }),
+            },
+        },
+        toolController.fetchLogo as any,
+    );
 }
