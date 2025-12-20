@@ -9,6 +9,8 @@ export const getTools = async (
             query?: string;
             search?: string;
             category?: string;
+            job?: string;
+            task?: string;
             tags?: string;
             pricing?: string;
             platform?: string;
@@ -22,7 +24,7 @@ export const getTools = async (
     }>,
     reply: FastifyReply,
 ) => {
-    const { query, search, category, tags, pricing, platform, model, featured, trending, sort, page = '1', perPage = '10' } = request.query;
+    const { query, search, category, job, task, tags, pricing, platform, model, featured, trending, sort, page = '1', perPage = '10' } = request.query;
 
     const take = parseInt(perPage);
     const skip = (parseInt(page) - 1) * take;
@@ -43,6 +45,14 @@ export const getTools = async (
 
     if (category) {
         where.categories = { some: { slug: category } };
+    }
+
+    if (job) {
+        where.jobs = { some: { slug: job } };
+    }
+
+    if (task) {
+        where.tasks = { some: { slug: task } };
     }
 
     if (tags) {
@@ -237,6 +247,8 @@ export const getToolBySlug = async (
         include: {
             categories: true,
             tags: true,
+            jobs: { select: { id: true, name: true, slug: true, icon: true } },
+            tasks: { select: { id: true, name: true, slug: true, icon: true } },
             reviews: {
                 include: { user: { select: { name: true, avatar_url: true } } },
             },

@@ -11,6 +11,7 @@ import ProsConsSection from '../components/ToolDetail/ProsConsSection';
 import TechnicalDetails from '../components/ToolDetail/TechnicalDetails';
 import QuickInfoSidebar from '../components/ToolDetail/QuickInfoSidebar';
 import CategoriesTags from '../components/ToolDetail/CategoriesTags';
+import JobsTasksSidebar from '../components/ToolDetail/JobsTasksSidebar';
 
 export default function ToolDetail() {
     const { slug } = useParams<{ slug: string }>();
@@ -133,6 +134,12 @@ export default function ToolDetail() {
                         <CategoriesTags
                             categories={tool.categories}
                             tags={tool.tags}
+                        />
+
+                        {/* Browse by Jobs & Tasks */}
+                        <JobsTasksSidebar
+                            jobs={tool.jobs}
+                            tasks={tool.tasks}
                         />
                     </div>
                 </div>

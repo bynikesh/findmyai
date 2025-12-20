@@ -66,6 +66,8 @@ export interface ToolDetailData {
     // Relations
     categories: { id: number; name: string; slug: string }[];
     tags: { id: number; name: string }[];
+    jobs: { id: number; name: string; slug: string; icon?: string }[];
+    tasks: { id: number; name: string; slug: string; icon?: string }[];
     reviews: any[];
 
     // Legacy fields for compatibility
@@ -156,6 +158,8 @@ export const useToolDetail = (slug: string | undefined) => {
                     // Relations
                     categories: data.categories || [],
                     tags: data.tags || [],
+                    jobs: data.jobs || [],
+                    tasks: data.tasks || [],
                     reviews: data.reviews || [],
 
                     // Legacy fields for compatibility

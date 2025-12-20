@@ -130,6 +130,8 @@ export default function ToolList() {
                 const params = new URLSearchParams();
                 if (searchQuery) params.set('search', searchQuery);
                 if (selectedCategory) params.set('category', selectedCategory);
+                if (selectedJob) params.set('job', selectedJob);
+                if (selectedTask) params.set('task', selectedTask);
                 if (selectedPricing.length === 1) params.set('pricing', selectedPricing[0]);
                 if (selectedSort) params.set('sort', selectedSort);
                 params.set('page', currentPage.toString());
@@ -174,7 +176,7 @@ export default function ToolList() {
         };
 
         fetchTools();
-    }, [searchQuery, selectedCategory, selectedPricing, verifiedOnly, selectedSort, currentPage]);
+    }, [searchQuery, selectedCategory, selectedJob, selectedTask, selectedPricing, verifiedOnly, selectedSort, currentPage]);
 
     // Update URL params
     useEffect(() => {
