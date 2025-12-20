@@ -37,7 +37,7 @@ export default function QuickInfoSidebar({
     onVisitWebsite,
 }: QuickInfoSidebarProps) {
     return (
-        <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+        <div className="bg-white rounded-xl shadow-lg p-6">
             {/* Try Now CTA */}
             <a
                 href={website}

@@ -113,34 +113,36 @@ export default function ToolDetail() {
                     </div>
 
                     {/* Right Column - Sidebar */}
-                    <div className="lg:col-span-1 space-y-6">
-                        {/* Quick Info */}
-                        <QuickInfoSidebar
-                            pricing_type={tool.pricing_type}
-                            pricing={tool.pricing}
-                            price_range={tool.price_range}
-                            free_trial={tool.free_trial}
-                            open_source={tool.open_source}
-                            company_name={tool.company_name}
-                            company_size={tool.company_size}
-                            release_year={tool.release_year}
-                            website={tool.website}
-                            api_docs_url={tool.api_docs_url}
-                            repo_url={tool.repo_url}
-                            onVisitWebsite={() => trackExternalClick(tool.id, 'tool-detail')}
-                        />
+                    <div className="lg:col-span-1">
+                        <div className="sticky top-24 space-y-6 max-h-[calc(100vh-8rem)] overflow-y-auto pb-8 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                            {/* Quick Info */}
+                            <QuickInfoSidebar
+                                pricing_type={tool.pricing_type}
+                                pricing={tool.pricing}
+                                price_range={tool.price_range}
+                                free_trial={tool.free_trial}
+                                open_source={tool.open_source}
+                                company_name={tool.company_name}
+                                company_size={tool.company_size}
+                                release_year={tool.release_year}
+                                website={tool.website}
+                                api_docs_url={tool.api_docs_url}
+                                repo_url={tool.repo_url}
+                                onVisitWebsite={() => trackExternalClick(tool.id, 'tool-detail')}
+                            />
 
-                        {/* Categories & Tags */}
-                        <CategoriesTags
-                            categories={tool.categories}
-                            tags={tool.tags}
-                        />
+                            {/* Categories & Tags */}
+                            <CategoriesTags
+                                categories={tool.categories}
+                                tags={tool.tags}
+                            />
 
-                        {/* Browse by Jobs & Tasks */}
-                        <JobsTasksSidebar
-                            jobs={tool.jobs}
-                            tasks={tool.tasks}
-                        />
+                            {/* Browse by Jobs & Tasks */}
+                            <JobsTasksSidebar
+                                jobs={tool.jobs}
+                                tasks={tool.tasks}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
