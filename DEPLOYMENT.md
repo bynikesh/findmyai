@@ -1,28 +1,32 @@
-# Deployment Checklist
+# Deployment Guide - Railway
 
 ## Pre-Deployment
 
-### 1. Environment Variables Setup
+### 1. Environment Variables
 
-**Backend (.env):**
+**Backend:**
 ```bash
 DATABASE_URL=postgresql://user:password@host/database
-JWT_SECRET=your-super-secret-jwt-key-change-this
-ANTHROPIC_API_KEY=sk-ant-... # Optional, for AI features
-REDIS_URL=redis://... # Optional, for caching
-S3_REGION=us-east-1 # Optional, for uploads
-S3_ACCESS_KEY_ID=... # Optional
-S3_SECRET_ACCESS_KEY=... # Optional
-S3_BUCKET_NAME=findmyai-uploads # Optional
+JWT_SECRET=your-super-secret-jwt-key
+NODE_ENV=production
+PORT=3000
+
+# Optional
+ANTHROPIC_API_KEY=sk-ant-...      # For AI features
+REDIS_URL=redis://...              # For caching
+S3_REGION=us-east-1               # For uploads
+S3_ACCESS_KEY_ID=...
+S3_SECRET_ACCESS_KEY=...
+S3_BUCKET_NAME=findmyai-uploads
 ```
 
-**Frontend (.env.production):**
+**Frontend:**
 ```bash
-VITE_API_URL=https://your-backend-url.railway.app
-VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com  # For Google OAuth
+VITE_API_URL=https://your-backend.railway.app
+VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
 
-### 1b. Google OAuth Setup (Required for Login)
+### 2. Google OAuth Setup
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create or select a project
@@ -32,28 +36,39 @@ VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com  # For Google OA
 6. Add **Authorized JavaScript origins**:
    - `http://localhost:5173` (local development)
    - `https://findmyai.xyz` (production domain)
-7. Copy the **Client ID** and add to:
-   - **Railway/Render**: Add to frontend environment variables as `VITE_GOOGLE_CLIENT_ID`
-   - **Local**: Add to `frontend/.env`
+7. Copy the **Client ID** and add to Railway as `VITE_GOOGLE_CLIENT_ID`
 
-### 2. Database Migration
-```bash
-cd backend
-npx prisma migrate deploy
-npx prisma generate
-```
+---
 
-### 3. Create Demo Admin User (if needed)
-```bash
-cd backend
-npx ts-node scripts/create-demo-user.ts
-```
+## Deploy to Railway
 
-## Deployment Options
+### Option 1: Railway Dashboard (Recommended)
 
-### Option 1: Quick Deploy (Recommended)
+1. Go to [Railway](https://railway.app/)
+2. Click **New Project** → **Deploy from GitHub repo**
+3. Select your repository
+4. Railway will auto-detect the monorepo structure
 
-#### Backend → Railway
+**Create two services:**
+
+**Backend Service:**
+- Root Directory: `backend`
+- Build Command: `npm install && npx prisma generate && npm run build`
+- Start Command: `npm start`
+- Add environment variables (see above)
+
+**Frontend Service:**
+- Root Directory: `frontend`
+- Build Command: `npm install && npm run build`
+- Start Command: `npx serve dist -s`
+- Add environment variables (see above)
+
+**Database:**
+- Click **+ New** → **Database** → **PostgreSQL**
+- Copy connection string to backend's `DATABASE_URL`
+
+### Option 2: Railway CLI
+
 ```bash
 # Install Railway CLI
 npm install -g @railway/cli
@@ -61,180 +76,87 @@ npm install -g @railway/cli
 # Login
 railway login
 
-# Initialize and deploy
-cd backend
+# Initialize project
 railway init
+
+# Deploy backend
+cd backend
 railway up
 
-# Set environment variables in Railway dashboard
-# Add all variables from .env
+# Deploy frontend
+cd ../frontend
+railway up
 ```
 
-#### Frontend → Netlify
-```bash
-# Install Netlify CLI
-npm install -g netlify-cli
-
-# Login
-netlify login
-
-# Deploy
-cd frontend
-netlify deploy --prod
-# When prompted:
-# - Build command: npm run build
-# - Publish directory: dist
-```
-
-### Option 2: GitHub Actions (Automated)
-
-1. **Push to GitHub:**
-```bash
-git add .
-git commit -m "feat: Complete FindMyAI platform"
-git push origin main
-```
-
-2. **Configure GitHub Secrets:**
-- Go to repo → Settings → Secrets and variables → Actions
-- Add secrets:
-  - `NETLIFY_AUTH_TOKEN`
-  - `NETLIFY_SITE_ID`
-  - `RAILWAY_TOKEN` (optional)
-
-3. **Automatic Deployment:**
-- GitHub Actions will automatically deploy on push to main
-- Frontend → Netlify
-- Backend → Railway (if configured)
-
-### Option 3: Manual Build & Deploy
-
-#### Frontend
-```bash
-cd frontend
-npm run build
-
-# Upload dist/ folder to:
-# - Netlify drag-and-drop
-# - Vercel CLI
-# - AWS S3 + CloudFront
-```
-
-#### Backend
-```bash
-cd backend
-npm run build
-
-# Deploy dist/ to:
-# - Railway
-# - Render
-# - AWS EC2/ECS
-# - DigitalOcean App Platform
-```
+---
 
 ## Post-Deployment
 
 ### 1. Verify Deployment
 ```bash
 # Check backend health
-curl https://your-backend-url/health
+curl https://your-backend.railway.app/health
 
-# Check frontend
-open https://your-frontend-url
+# Visit frontend
+open https://your-frontend.railway.app
 ```
 
 ### 2. Test Critical Flows
 - [ ] Homepage loads
 - [ ] Search works
 - [ ] Tool details display
-- [ ] Login works
+- [ ] Google login works
+- [ ] Favorites work (add/remove)
 - [ ] Admin dashboard accessible
 
-### 3. Configure Custom Domain (Optional)
+### 3. Configure Custom Domain
 
-**Netlify:**
-```bash
-netlify domains:add yourdomain.com
-```
+In Railway Dashboard:
+1. Select your service
+2. Go to **Settings** → **Domains**
+3. Click **Add Custom Domain**
+4. Add DNS records as instructed
 
-**Railway:**
-- Dashboard → Settings → Domains → Add custom domain
+---
 
-### 4. Setup Monitoring
-- Enable Netlify Analytics
-- Add Sentry for error tracking
-- Configure uptime monitoring (UptimeRobot, Pingdom)
+## Railway Commands Reference
 
-### 5. Schedule Trending Calculation
-
-**Using Railway Cron:**
-- Add to `railway.toml`:
-```toml
-[cron]
-trending = "0 2 * * * cd backend && npx ts-node scripts/calculate-trending.ts"
-```
-
-**Using GitHub Actions:**
-- Already configured in `.github/workflows/ci-cd.yml`
-- Can add scheduled workflow
-
-## Deployment Commands Reference
-
-### Railway
 ```bash
 railway status        # Check deployment status
 railway logs          # View logs
 railway variables     # List environment variables
 railway open          # Open in browser
+railway up            # Deploy current directory
 ```
 
-### Netlify
-```bash
-netlify status        # Check site status
-netlify open          # Open in browser
-netlify open:admin    # Open dashboard
-netlify env:list      # List env vars
-```
-
-## Rollback
-
-### Netlify
-```bash
-netlify rollback      # Rollback to previous deploy
-```
-
-### Railway
-- Dashboard → Deployments → Select previous → Redeploy
+---
 
 ## Troubleshooting
 
 ### Build Fails
 - Check Node version (requires 18+)
-- Clear build cache
 - Verify all dependencies are in package.json
+- Run `npx prisma generate` before build
 
 ### API Not Connecting
-- Verify VITE_API_URL in frontend
+- Verify `VITE_API_URL` in frontend points to backend
 - Check CORS settings in backend
 - Ensure backend is deployed and healthy
 
 ### Database Connection Fails
-- Verify DATABASE_URL is correct
-- Check database is accessible (not behind firewall)
+- Verify `DATABASE_URL` is correct
 - Run migrations: `npx prisma migrate deploy`
+- Check database is accessible
+
+### Google Login Not Working
+- Verify `VITE_GOOGLE_CLIENT_ID` is set correctly
+- Check authorized origins in Google Cloud Console
+- Ensure production domain is added
+
+---
 
 ## URLs After Deployment
 
-After deployment, your URLs will be:
-- **Frontend:** https://findmyai.netlify.app (or custom domain)
-- **Backend:** https://findmyai.railway.app (or custom domain)
-- **Admin:** https://findmyai.netlify.app/admin
-
-## Next Steps
-
-1. Configure CDN for static assets
-2. Set up automated backups for database
-3. Configure SSL certificates (auto on Netlify/Railway)
-4. Add analytics (Google Analytics, Plausible)
-5. Set up error tracking (Sentry)
-6. Configure CI/CD for staging environment
+- **Frontend:** `https://findmyai.xyz` (or Railway URL)
+- **Backend API:** `https://api.findmyai.xyz` (or Railway URL)
+- **Admin:** `https://findmyai.xyz/admin`

@@ -46,14 +46,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Uncomment when tests are added
-      # - name: Run tests
-      #   run: npm test
-      #   env:
-      #     DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-build
           path: ./backend/dist
@@ -92,10 +86,11 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.findmyai.com' }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.findmyai.xyz' }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: ./frontend/dist
@@ -142,7 +137,7 @@ jobs:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
 
       - name: Upload Cypress screenshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-screenshots
@@ -150,7 +145,7 @@ jobs:
           retention-days: 7
 
       - name: Upload Cypress videos
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cypress-videos
@@ -158,73 +153,25 @@ jobs:
           retention-days: 7
 
   # ============================================
-  # Deploy Frontend to Netlify
+  # Deploy to Railway (auto-deploys on push)
   # ============================================
-  deploy-frontend:
-    name: Deploy to Netlify
+  deploy:
+    name: Deploy to Railway
     runs-on: ubuntu-latest
-    needs: [frontend, e2e]
+    needs: [backend, frontend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: frontend-build
-          path: ./frontend/dist
-
-      - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v2.1
-        with:
-          publish-dir: './frontend/dist'
-          production-branch: main
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: true
-          enable-commit-comment: true
-          overwrites-pull-request-comment: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      - name: Comment deployment URL
-        if: success()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              body: '✅ Frontend deployed to Netlify! Check the deployment in the checks above.'
-            })
-
-  # ============================================
-  # Deploy Backend (Example for Railway/Render)
-  # ============================================
-  deploy-backend:
-    name: Deploy Backend
-    runs-on: ubuntu-latest
-    needs: [backend]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy to Railway
+      - name: Railway deployment notice
         run: |
-          echo "Deploying to Railway..."
-          # Railway auto-deploys on push to main
-          # Or use Railway CLI:
-          # npx @railway/cli up
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-      # Alternative: Deploy to Render
-      # - name: Trigger Render Deploy
-      #   run: |
-      #     curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+          echo "✅ Railway auto-deploys on push to main branch"
+          echo "Backend and Frontend will be deployed automatically"
+          echo ""
+          echo "Make sure these environment variables are set in Railway:"
+          echo "  - DATABASE_URL"
+          echo "  - JWT_SECRET"
+          echo "  - VITE_API_URL"
+          echo "  - VITE_GOOGLE_CLIENT_ID"
