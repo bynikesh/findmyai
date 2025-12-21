@@ -90,18 +90,44 @@ export const googleAuth = async (
     const { credential } = request.body;
 
     try {
+        // Log for debugging
+        console.log('Received Google credential, length:', credential?.length || 0);
+
+        if (!credential) {
+            return reply.status(400).send({ message: 'No credential provided' });
+        }
+
         // Decode the Google ID token (base64 encoded)
         // The credential is a JWT from Google Sign-In
         const parts = credential.split('.');
         if (parts.length !== 3) {
-            return reply.status(400).send({ message: 'Invalid Google credential' });
+            console.error('Invalid JWT format, parts:', parts.length);
+            return reply.status(400).send({ message: 'Invalid Google credential format' });
         }
 
-        const payload: GoogleUserPayload = JSON.parse(
-            Buffer.from(parts[1], 'base64').toString('utf-8')
-        );
+        // Decode the payload (middle part of JWT)
+        let payload: GoogleUserPayload;
+        try {
+            const decodedPayload = Buffer.from(parts[1], 'base64url').toString('utf-8');
+            payload = JSON.parse(decodedPayload);
+            console.log('Decoded Google user:', payload.email);
+        } catch (decodeError) {
+            // Try with regular base64 if base64url fails
+            try {
+                const decodedPayload = Buffer.from(parts[1], 'base64').toString('utf-8');
+                payload = JSON.parse(decodedPayload);
+                console.log('Decoded Google user (base64):', payload.email);
+            } catch (fallbackError) {
+                console.error('Failed to decode JWT payload:', decodeError);
+                return reply.status(400).send({ message: 'Failed to decode Google credential' });
+            }
+        }
 
         const { email, name, picture, sub: googleId } = payload;
+
+        if (!email) {
+            return reply.status(400).send({ message: 'No email in Google credential' });
+        }
 
         // Check if user exists
         let user = await prisma.user.findUnique({ where: { email } });
@@ -138,6 +164,8 @@ export const googleAuth = async (
             name: user.name
         });
 
+        console.log('Google auth successful for:', user.email);
+
         return {
             token,
             user: {
@@ -150,7 +178,7 @@ export const googleAuth = async (
         };
     } catch (error) {
         console.error('Google auth error:', error);
-        return reply.status(401).send({ message: 'Invalid Google credential' });
+        return reply.status(401).send({ message: 'Google authentication failed' });
     }
 };
 
