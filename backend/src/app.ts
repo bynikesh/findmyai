@@ -67,6 +67,7 @@ export const buildApp = () => {
     app.register(import('./routes/ai-seo'), { prefix: '/api' });
     app.register(import('./routes/import'), { prefix: '/api' });
     app.register(import('./routes/jobsTasks'), { prefix: '/api' });
+    app.register(import('./routes/favorites'), { prefix: '/api' });
     app.register(import('./routes/blog'), { prefix: '/api' });
     app.register(import('./routes/pages'), { prefix: '' });
 

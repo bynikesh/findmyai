@@ -23,13 +23,35 @@ enum SubmissionStatus {
 model User {
   id           Int       @id @default(autoincrement())
   email        String    @unique
-  passwordHash String
+  passwordHash String?   // Optional for OAuth users
   role         Role      @default(USER)
   name         String?
   avatar_url   String?
+  
+  // OAuth fields
+  googleId     String?   @unique
+  provider     String?   // 'email', 'google', etc.
+  
   createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt @default(now())
+  
   reviews      Review[]
   submissions  Submission[]
+  favorites    Favorite[]
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  toolId    Int
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, toolId])
+  @@index([userId])
+  @@index([toolId])
 }
 
 model Tool {
@@ -124,6 +146,9 @@ model Tool {
   
   // Blog relations
   blog_posts      BlogPost[]  @relation("BlogToolRelation")
+  
+  // User favorites
+  favorites       Favorite[]
 
   @@index([slug])
   @@index([trending_score])

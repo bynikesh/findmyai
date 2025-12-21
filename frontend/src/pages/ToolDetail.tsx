@@ -45,6 +45,7 @@ export default function ToolDetail() {
         <div className="bg-gray-50 min-h-screen">
             {/* Hero Section */}
             <HeroSection
+                toolId={tool.id}
                 name={tool.name}
                 slug={slug}
                 tagline={tool.tagline}

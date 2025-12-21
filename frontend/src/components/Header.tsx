@@ -10,10 +10,12 @@ import {
     Squares2X2Icon,
     BriefcaseIcon,
     ClipboardDocumentListIcon,
+    HeartIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import HeaderSearchBar from './HeaderSearchBar';
 import { apiUrl } from 'lib/constants';
+import { useAuth } from '../contexts/AuthContext';
 
 interface JobOrTask {
     id: number;
@@ -47,9 +49,7 @@ const sidebarItems: Array<{ name: string; icon: typeof Squares2X2Icon; type: Vie
 
 export default function Header() {
     const navigate = useNavigate();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [userName, setUserName] = useState('');
+    const { user, isAuthenticated, isAdmin, logout } = useAuth();
     const [showSearch, setShowSearch] = useState(false);
     const [jobs, setJobs] = useState<JobOrTask[]>([]);
     const [tasks, setTasks] = useState<JobOrTask[]>([]);
@@ -86,33 +86,8 @@ export default function Header() {
         fetchData();
     }, []);
 
-    useEffect(() => {
-        const checkAuth = () => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    setIsAuthenticated(true);
-                    setIsAdmin(payload.role === 'ADMIN');
-                    setUserName(payload.name || payload.email);
-                } catch {
-                    setIsAuthenticated(false);
-                }
-            } else {
-                setIsAuthenticated(false);
-            }
-        };
-
-        checkAuth();
-        window.addEventListener('auth-change', checkAuth);
-        return () => window.removeEventListener('auth-change', checkAuth);
-    }, []);
-
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setIsAuthenticated(false);
-        setIsAdmin(false);
-        window.dispatchEvent(new Event('auth-change'));
+        logout();
         navigate('/');
     };
 
@@ -309,7 +284,7 @@ export default function Header() {
                                         >
                                             <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-xl bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                                 <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                                                    {userName}
+                                                    {user?.name || user?.email}
                                                 </div>
                                                 {isAdmin && (
                                                     <Menu.Item>
@@ -326,6 +301,20 @@ export default function Header() {
                                                         )}
                                                     </Menu.Item>
                                                 )}
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <Link
+                                                            to="/favorites"
+                                                            className={clsx(
+                                                                active ? 'bg-gray-100' : '',
+                                                                'flex items-center gap-2 px-4 py-2 text-sm text-gray-700'
+                                                            )}
+                                                        >
+                                                            <HeartIcon className="h-4 w-4" />
+                                                            My Favorites
+                                                        </Link>
+                                                    )}
+                                                </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
                                                         <button

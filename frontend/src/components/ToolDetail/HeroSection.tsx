@@ -1,8 +1,10 @@
 import { CheckBadgeIcon, FireIcon, SparklesIcon, TrophyIcon } from '@heroicons/react/24/solid';
 import { ArrowTopRightOnSquareIcon, PlayIcon } from '@heroicons/react/24/outline';
 import { trackExternalClick } from '../../lib/gtag';
+import FavoriteButton from '../FavoriteButton';
 
 interface HeroSectionProps {
+    toolId: number;
     name: string;
     slug?: string;
     tagline?: string;
@@ -14,9 +16,11 @@ interface HeroSectionProps {
     trending: boolean;
     editors_choice: boolean;
     brand_color_primary?: string;
+    isFavorited?: boolean;
 }
 
 export default function HeroSection({
+    toolId,
     name,
     slug,
     tagline,
@@ -28,6 +32,7 @@ export default function HeroSection({
     trending,
     editors_choice,
     brand_color_primary,
+    isFavorited = false,
 }: HeroSectionProps) {
     const handleTryNow = () => {
         // Track the click in Google Analytics
@@ -143,6 +148,15 @@ export default function HeroSection({
                                 Visit Website
                                 <ArrowTopRightOnSquareIcon className="h-5 w-5" />
                             </button>
+
+                            {/* Favorite Button */}
+                            <FavoriteButton
+                                toolId={toolId}
+                                initialFavorited={isFavorited}
+                                size="lg"
+                                showText
+                                className="px-6 py-4 bg-white hover:bg-red-50 border border-gray-300 hover:border-red-300 rounded-xl shadow-sm"
+                            />
                         </div>
                     </div>
                 </div>

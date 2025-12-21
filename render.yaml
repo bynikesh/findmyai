@@ -56,6 +56,8 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://findmyai-backend.onrender.com
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false  # Set manually in Render dashboard
 
 databases:
   - name: findmyai-db

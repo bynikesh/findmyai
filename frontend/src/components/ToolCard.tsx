@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
-import { BookmarkIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
-import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
-import { useState } from 'react';
+import { CheckBadgeIcon } from '@heroicons/react/24/outline';
+import FavoriteButton from './FavoriteButton';
 
 interface Tool {
     id: number;
@@ -18,6 +17,8 @@ interface Tool {
 
 interface ToolCardProps {
     tool: Tool;
+    isFavorited?: boolean;
+    onFavoriteToggle?: (toolId: number, isFavorited: boolean) => void;
 }
 
 // Get pricing badge color based on type
@@ -51,16 +52,12 @@ const getPricingBadges = (pricingTypes?: string[], pricing?: string) => {
     });
 };
 
-export default function ToolCard({ tool }: ToolCardProps) {
-    const [isSaved, setIsSaved] = useState(false);
+export default function ToolCard({ tool, isFavorited = false, onFavoriteToggle }: ToolCardProps) {
     const pricingBadges = getPricingBadges(tool.pricing_type, tool.pricing);
     const displayDescription = tool.short_description || tool.description;
 
-    const handleSaveClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsSaved(!isSaved);
-        // TODO: Persist to backend/localStorage
+    const handleFavoriteToggle = (newIsFavorited: boolean) => {
+        onFavoriteToggle?.(tool.id, newIsFavorited);
     };
 
     return (
@@ -86,18 +83,14 @@ export default function ToolCard({ tool }: ToolCardProps) {
                         )}
                     </div>
 
-                    {/* Save/Bookmark Button */}
-                    <button
-                        onClick={handleSaveClick}
-                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                        aria-label={isSaved ? 'Remove from saved' : 'Save tool'}
-                    >
-                        {isSaved ? (
-                            <BookmarkSolidIcon className="w-5 h-5 text-emerald-500" />
-                        ) : (
-                            <BookmarkIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
-                        )}
-                    </button>
+                    {/* Favorite Button */}
+                    <FavoriteButton
+                        toolId={tool.id}
+                        initialFavorited={isFavorited}
+                        size="md"
+                        className="hover:bg-gray-100 rounded-lg"
+                        onToggle={handleFavoriteToggle}
+                    />
                 </div>
 
                 {/* Tool Name + Verified Badge */}
@@ -137,3 +130,4 @@ export default function ToolCard({ tool }: ToolCardProps) {
         </div>
     );
 }
+

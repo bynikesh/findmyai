@@ -33,6 +33,19 @@ export default async function (app: FastifyInstance) {
         authController.login,
     );
 
+    // Google OAuth endpoint
+    fastify.post(
+        '/auth/google',
+        {
+            schema: {
+                body: z.object({
+                    credential: z.string(),
+                }),
+            },
+        },
+        authController.googleAuth,
+    );
+
     fastify.get(
         '/auth/me',
         {
@@ -41,3 +54,4 @@ export default async function (app: FastifyInstance) {
         authController.me,
     );
 }
+

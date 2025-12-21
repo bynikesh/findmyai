@@ -19,7 +19,22 @@ S3_BUCKET_NAME=findmyai-uploads # Optional
 **Frontend (.env.production):**
 ```bash
 VITE_API_URL=https://your-backend-url.railway.app
+VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com  # For Google OAuth
 ```
+
+### 1b. Google OAuth Setup (Required for Login)
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create or select a project
+3. Navigate to **APIs & Services** → **Credentials**
+4. Click **Create Credentials** → **OAuth client ID**
+5. Choose **Web application**
+6. Add **Authorized JavaScript origins**:
+   - `http://localhost:5173` (local development)
+   - `https://findmyai.xyz` (production domain)
+7. Copy the **Client ID** and add to:
+   - **Railway/Render**: Add to frontend environment variables as `VITE_GOOGLE_CLIENT_ID`
+   - **Local**: Add to `frontend/.env`
 
 ### 2. Database Migration
 ```bash
