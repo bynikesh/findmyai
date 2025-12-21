@@ -178,7 +178,11 @@ export const googleAuth = async (
         };
     } catch (error) {
         console.error('Google auth error:', error);
-        return reply.status(401).send({ message: 'Google authentication failed' });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return reply.status(401).send({
+            message: 'Google authentication failed',
+            error: process.env.NODE_ENV === 'production' ? undefined : errorMessage
+        });
     }
 };
 
