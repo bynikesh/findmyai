@@ -56,7 +56,11 @@ export default function AuthForms({ type }: { type: 'login' | 'register' }) {
 
     // Initialize Google Sign-In
     useEffect(() => {
-        if (!GOOGLE_CLIENT_ID) return;
+        console.log('Google Client ID:', GOOGLE_CLIENT_ID ? 'Set' : 'Not set');
+        if (!GOOGLE_CLIENT_ID) {
+            console.warn('VITE_GOOGLE_CLIENT_ID is not configured');
+            return;
+        }
 
         const script = document.createElement('script');
         script.src = 'https://accounts.google.com/gsi/client';
