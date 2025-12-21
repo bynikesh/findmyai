@@ -29,7 +29,7 @@ declare global {
     }
 }
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1042536434040-vpes85pvmeu14uo9b9h9sei1ehp4nb19.apps.googleusercontent.com';
 
 export default function AuthForms({ type }: { type: 'login' | 'register' }) {
     const navigate = useNavigate()
