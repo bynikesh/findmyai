@@ -1,0 +1,15 @@
+# Nixpacks build configuration for Railway
+
+[phases.setup]
+nixPkgs = ["nodejs-18_x"]
+
+[phases.build]
+cmds = [
+    "npm install",
+    "npx prisma generate",
+    "npx prisma db push --accept-data-loss",
+    "npm run build"
+]
+
+[start]
+cmd = "npm start"
